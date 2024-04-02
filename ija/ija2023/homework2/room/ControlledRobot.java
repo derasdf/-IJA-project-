@@ -2,11 +2,11 @@
  * ControlledRobot.java
  * @author Aleksandrov Vladimir xaleks03
  */
-package ija.ija2023.homework1.room;
+package ija.ija2023.homework2.room;
 
-import ija.ija2023.homework1.common.Environment;
-import ija.ija2023.homework1.common.Position;
-import ija.ija2023.homework1.common.Robot;
+import ija.ija2023.homework2.common.Environment;
+import ija.ija2023.homework2.common.Position;
+import ija.ija2023.homework2.common.Robot;
 
 public class ControlledRobot implements Robot {
     private int angle;

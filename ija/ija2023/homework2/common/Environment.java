@@ -3,7 +3,7 @@
  * @author Aleksandrov Vladimir xaleks03
  */
 
-package ija.ija2023.homework1.common;
+package ija.ija2023.homework2.common;
 
 public interface Environment {
     boolean addRobot(Robot robot);
