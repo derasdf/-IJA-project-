@@ -1,6 +1,6 @@
 /*
- * IJA 2022/23: Úloha 2
- * Spuštění presentéru (vizualizace) implementace modelu bludiště.
+ * IJA 2022/23: ?loha 2
+ * Spu?t?n? present?ru (vizualizace) implementace modelu bludi?t?.
  */
 package ija.ija2023.homework2;
 
@@ -20,10 +20,10 @@ import ija.ija2023.homework2.tool.common.Position;
 import ija.ija2023.homework2.common.Robot;
 import ija.ija2023.homework2.common.Environment;
 /**
- * Třída spustí vizualizaci implementace modelu bludiště. 
- * Prezentér je implementován třídou {@link EnvPresenter}, dále využívá prostředky definované 
- * v balíku ija.ija2022.homework2.common, který je součástí dodaného nástroje.
- * @author Radek Kočí
+ * T??da spust? vizualizaci implementace modelu bludi?t?. 
+ * Prezent?r je implementov?n t??dou {@link EnvPresenter}, d?le vyu??v? prost?edky definovan? 
+ * v bal?ku ija.ija2022.homework2.common, kter? je sou??st? dodan?ho n?stroje.
+ * @author Radek Ko??
  */
 public class Homework2 {
     

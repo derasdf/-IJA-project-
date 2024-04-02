@@ -1,6 +1,6 @@
 /*
- * IJA 2023/24: Úloha 2
- * Testovací třída.
+ * IJA 2023/24: ?loha 2
+ * Testovac? t??da.
  */
 package ija.ija2023.homework2;
 
@@ -25,8 +25,8 @@ import java.util.function.Function;
 
 
 /**
- * Testovací třída pro druhý úkol z předmětu IJA 2023/24.
- * @author Radek Kočí
+ * Testovac? t??da pro druh? ?kol z p?edm?tu IJA 2023/24.
+ * @author Radek Ko??
  */
 public class Homework2Test {
     
@@ -34,7 +34,7 @@ public class Homework2Test {
     private Robot r1, r2;
        
     /**
-     * Vytvoří prostředí, nad kterým se provádějí testy.
+     * Vytvo?? prost?ed?, nad kter?m se prov?d?j? testy.
      */
     @Before
     public void setUp() {
@@ -66,7 +66,7 @@ public class Homework2Test {
     }
  
     /**
-     * Test správného chování při setkání svou robotů.
+     * Test spr?vn?ho chov?n? p?i setk?n? svou robot?.
      * 1 bod
      */
     @Test
@@ -84,7 +84,7 @@ public class Homework2Test {
     }
 
     /**
-     * Testování notifikací při přesunu objektu.
+     * Testov?n? notifikac? p?i p?esunu objektu.
      * 3 body
      */
     @Test
@@ -102,10 +102,10 @@ public class Homework2Test {
     }
 
     /**
-     * Pomocná metoda pro testování notifikací při přesunu objektu.
-     * @param tester Tester nad prostředím, který provádí vyhodnocení notifikací.
-     * @param success Zda se má akce podařit nebo ne
-     * @param robot objekt zpracovávaný akcí
+     * Pomocn? metoda pro testov?n? notifikac? p?i p?esunu objektu.
+     * @param tester Tester nad prost?ed?m, kter? prov?d? vyhodnocen? notifikac?.
+     * @param success Zda se m? akce poda?it nebo ne
+     * @param robot objekt zpracov?van? akc?
      * @param action akce nad objektem
      */
     private void testNotificationGhostMoving(EnvTester tester, boolean success, Robot robot, Function<Robot, Boolean> action) {
