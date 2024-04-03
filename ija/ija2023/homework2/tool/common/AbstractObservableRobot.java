@@ -30,8 +30,10 @@ public abstract class AbstractObservableRobot implements ToolRobot, Observable {
     @Override
     public void notifyObservers() {
         // Notify all registered observers about the change in the object's state
-        for (Observable.Observer observer : observers) {
-            observer.update();
+        if (observers != null && !observers.isEmpty()) {
+            for (Observable.Observer observer : observers) {
+                observer.update();
+            }
         }
     }
 }

@@ -5,21 +5,24 @@
 package ija.ija2023.homework2.room;
 
 import ija.ija2023.homework2.common.Environment;
-import ija.ija2023.homework2.common.Position;
+import ija.ija2023.homework2.tool.common.Position;
 import ija.ija2023.homework2.common.Robot;
 import ija.ija2023.homework2.common.Obstacle;
+import ija.ija2023.homework2.tool.common.ToolRobot;
 
-
+import java.util.ArrayList;
+import java.util.List;
 public class Room implements Environment {
     private int rows;
     private int cols;
     private boolean[][] obstacles;
     private boolean[][] robots;
+    private List<ToolRobot> myRobots = new ArrayList<>();
 
     private Room(int rows, int cols) {
         if (rows <= 0 || cols <= 0) {
-        throw new IllegalArgumentException("Rozmery mistnosti musi byt vetsi nez 0");
-    }
+            throw new IllegalArgumentException("Rozmery mistnosti musi byt vetsi nez 0");
+        }
         this.rows = rows;
         this.cols = cols;
         this.obstacles = new boolean[rows][cols];
@@ -34,15 +37,16 @@ public class Room implements Environment {
     public boolean addRobot(Robot robot) {
         Position pos = robot.getPosition();
         if (!containsPosition(pos)) {
-            return false; // Position is out of bounds
+            return false; // Позиция вне границ
         }
         if (obstacleAt(pos) || robotAt(pos)) {
-            return false; // There is an obstacle or another robot at the position
+            return false; // На позиции уже есть препятствие или другой робот
         }
+        // Предполагается, что Robot реализует ToolRobot
+        myRobots.add((ToolRobot)robot); // Добавляем робота в список myRobots
         int row = pos.getRow();
         int col = pos.getCol();
-
-        robots[row][col] = true;
+        robots[row][col] = true; // Отмечаем позицию робота в массиве как занятую
         return true;
     }
 
@@ -76,5 +80,21 @@ public class Room implements Environment {
         int row = pos.getRow();
         int col = pos.getCol();
         return row >= 0 && row < rows && col >= 0 && col < cols;
+    }
+
+    @Override
+    public List<ToolRobot> robots() {
+        return new ArrayList<>(myRobots);
+
+    }
+
+    @Override
+    public int cols() {
+        return cols;
+    }
+
+    @Override
+    public int rows() {
+        return rows;
     }
 }

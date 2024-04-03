@@ -4,10 +4,13 @@
  */
 package ija.ija2023.homework2.common;
 
-public interface Robot {
+import ija.ija2023.homework2.tool.common.ToolRobot;
+import ija.ija2023.homework2.tool.common.Position;
+
+public interface Robot extends ToolRobot {
     int angle();
     boolean canMove();
     Position getPosition();
     boolean move();
-    void turn();
+    void turn(int n);
 }
