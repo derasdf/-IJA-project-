@@ -18,6 +18,7 @@ public class Room implements Environment {
     private boolean[][] obstacles;
     private boolean[][] robots;
     private List<ToolRobot> myRobots = new ArrayList<>();
+    private List<Obstacle> myObstacles = new ArrayList<>();
 
     private Room(int rows, int cols) {
         if (rows <= 0 || cols <= 0) {
@@ -37,25 +38,26 @@ public class Room implements Environment {
     public boolean addRobot(Robot robot) {
         Position pos = robot.getPosition();
         if (!containsPosition(pos)) {
-            return false; // Позиция вне границ
+            return false;
         }
         if (obstacleAt(pos) || robotAt(pos)) {
-            return false; // На позиции уже есть препятствие или другой робот
+            return false;
         }
-        // Предполагается, что Robot реализует ToolRobot
-        myRobots.add((ToolRobot)robot); // Добавляем робота в список myRobots
+
+        myRobots.add((ToolRobot)robot);
         int row = pos.getRow();
         int col = pos.getCol();
-        robots[row][col] = true; // Отмечаем позицию робота в массиве как занятую
+        robots[row][col] = true;
         return true;
     }
 
     @Override
     public boolean createObstacleAt(int row, int col) {
         if (!containsPosition(new Position(row, col))) {
-            return false; // Position is out of bounds
+            return false;
         }
         Obstacle obstacle = new Obstacle(this, new Position(row, col));
+        myObstacles.add(obstacle);
         obstacles[row][col] = true;
         return true;
     }
@@ -87,6 +89,11 @@ public class Room implements Environment {
         return new ArrayList<>(myRobots);
 
     }
+    public List<Obstacle> myObstacleslist() {
+        return new ArrayList<>(myObstacles);
+
+    }
+
 
     @Override
     public int cols() {
