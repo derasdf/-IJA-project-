@@ -31,8 +31,8 @@ public abstract class AbstractObservableRobot implements ToolRobot, Observable {
 
     @Override
     public void notifyObservers() {
-        if (observers != null && !observers.isEmpty()) {
-            for (Observable.Observer observer : observers) {
+        if (this.observers != null && !this.observers.isEmpty()) {
+            for (Observable.Observer observer : this.observers) {
                 observer.update(this);
             }
         }

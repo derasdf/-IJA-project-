@@ -32,6 +32,7 @@ public class RobotView extends JComponent implements ComponentView, Observable.O
     int height;
     int allrow;
     int allcol;
+    Robot rob;
     public RobotView(Robot r, ToolEnvironment env)
     {
         this.angle = r.angle();
@@ -42,10 +43,22 @@ public class RobotView extends JComponent implements ComponentView, Observable.O
         this.width = 1000 / env.cols() ;
         this.height = 1000 / env.rows();
         this.setPreferredSize(new Dimension(this.width, this.height));
+        this.rob = r;
+    }
+    public Robot getRobot()
+    {
+        return this.rob;
     }
     @java.lang.Override
     public void update(Observable o) {
-
+        if (o instanceof Robot)
+        {
+            Robot robot = (Robot) o;
+            this.angle = robot.angle();
+            this.row = robot.getPosition().getRow();
+            this.col = robot.getPosition().getCol();
+            repaint();
+        }
     }
     @Override
     protected void paintComponent(Graphics g) {
@@ -56,7 +69,7 @@ public class RobotView extends JComponent implements ComponentView, Observable.O
         if (angle == 0) {
             g.fillOval(this.width / 2 - 7 , this.height/4 - 7, 15, 15);
         } else if (angle == 45) {
-            g.fillOval(this.width - 7 , this.height/4 - 7, 15, 15);
+            g.fillOval(this.width/4*3 - 15 , this.height/4 + 7, 15, 15);
         } else if (angle == 90) {
             g.fillOval(this.width - 7, this.height/2 - 7, 15, 15);
         } else if (angle == 135) {

@@ -7,14 +7,18 @@ package ija.ija2023.homework2.tool.view;
 
 import ija.ija2023.homework2.common.Obstacle;
 import ija.ija2023.homework2.common.Robot;
+import ija.ija2023.homework2.tool.common.Observable;
 import ija.ija2023.homework2.tool.common.ToolEnvironment;
 import ija.ija2023.homework2.tool.common.ToolRobot;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
 public class FieldView extends JPanel {
     ToolEnvironment env;
+    private List<RobotView> rViews = new ArrayList<>();
     public FieldView(ToolEnvironment env){
         this.env = env;
         this.setLayout(null);
@@ -28,11 +32,22 @@ public class FieldView extends JPanel {
         }
         for (ToolRobot robot : env.robots()) {
             if (robot instanceof Robot) {
+                for (RobotView rV : rViews) {
+                    if (rV.getRobot() == robot) {
+                        this.remove(rV);
+                        rViews.remove(rV);
+                        robot.removeObserver(rV);
+                        this.revalidate();
+                    }
+                }
                 RobotView robotView = new RobotView((Robot)robot, env);
+                rViews.add(robotView);
                 robotView.setBounds(1000 / env.cols() * (robot.getPosition().getCol()-1), 1000 / env.rows() * (robot.getPosition().getRow()-1), robotView.getPreferredSize().width, robotView.getPreferredSize().height);
                 this.add(robotView);
+                robot.addObserver(robotView);
             }
             }
+
 
 
     }

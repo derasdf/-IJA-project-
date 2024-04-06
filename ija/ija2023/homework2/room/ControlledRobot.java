@@ -10,7 +10,7 @@ import ija.ija2023.homework2.tool.common.Position;
 import ija.ija2023.homework2.common.Robot;
 
 public class ControlledRobot extends AbstractObservableRobot implements Robot {
-    private int angle;
+    private int angle = 0;
     private Environment environment;
     private Position position;
     private ControlledRobot(Environment environment, Position position) {
