@@ -73,7 +73,7 @@ public class RobotView extends JComponent implements ComponentView, Observable.O
         } else if (angle == 90) {
             g.fillOval(this.width - 7, this.height/2 - 7, 15, 15);
         } else if (angle == 135) {
-            g.fillOval(this.width - 7, this.height- 7, 15, 15);
+            g.fillOval(this.width/4*3 - 15, this.height - 7, 15, 15);
         } else if (angle == 180) {
             g.fillOval(this.width/2 - 7, this.height- 7, 15, 15);
         } else if (angle == 225) {
