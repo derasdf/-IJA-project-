@@ -20,11 +20,11 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     public static ControlledRobot create(Environment environment, Position position) {
         if (!environment.containsPosition(position) || environment.obstacleAt(position)) {
-            return null;
+            return null; // Cannot create robot outside environment boundaries or at a position with an obstacle
         }
         ControlledRobot robot = new ControlledRobot(environment, position);
         if (!environment.addRobot(robot)) {
-            return null;
+            return null; // Failed to add the robot to the environment
         }
 
         return robot;
@@ -32,14 +32,11 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     @Override
     public void turn(int n) {
+        // Реализация поворота с вызовом notifyObservers()
         angle = (angle + n * 45) % 360;
-        this.notifyObservers();
+        notifyObservers(); // Уведомляем наблюдателей о повороте
     }
-    @Override
-    public void turn() {
-        angle = (angle + 45) % 360;
-        this.notifyObservers();
-    }
+
     @Override
     public int angle() {
         return angle;
@@ -47,15 +44,15 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     @Override
     public boolean canMove() {
-
+        // Calculate the position of the cell in front of the robot based on its angle
         Position nextPosition = calculateNextPosition();
 
-
+        // Check if the next position is within the boundaries of the environment
         if (!environment.containsPosition(nextPosition)) {
             return false;
         }
 
-
+        // Check if the next position is empty (no obstacles or other robots)
         return !environment.obstacleAt(nextPosition) && !environment.robotAt(nextPosition);
     }
 
@@ -63,31 +60,31 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
         int row = position.getRow();
         int col = position.getCol();
 
-
+        // Calculate the change in row and column based on the angle
         int deltaRow = 0, deltaCol = 0;
         if (angle == 0) {
-            deltaRow = -1;
+            deltaRow = -1; // Move up
         } else if (angle == 45) {
-            deltaRow = -1;
-            deltaCol = 1;
+            deltaRow = -1; // Move up
+            deltaCol = 1;  // Move right
         } else if (angle == 90) {
-            deltaCol = 1;
+            deltaCol = 1;  // Move right
         } else if (angle == 135) {
-            deltaRow = 1;
-            deltaCol = 1;
+            deltaRow = 1;  // Move down
+            deltaCol = 1;  // Move right
         } else if (angle == 180) {
-            deltaRow = 1;
+            deltaRow = 1;  // Move down
         } else if (angle == 225) {
-            deltaRow = 1;
-            deltaCol = -1;
+            deltaRow = 1;  // Move down
+            deltaCol = -1; // Move left
         } else if (angle == 270) {
-            deltaCol = -1;
+            deltaCol = -1; // Move left
         } else if (angle == 315) {
-            deltaRow = -1;
-            deltaCol = -1;
+            deltaRow = -1; // Move up
+            deltaCol = -1; // Move left
         }
 
-
+        // Calculate the next position
         int nextRow = row + deltaRow;
         int nextCol = col + deltaCol;
         return new Position(nextRow, nextCol);
@@ -96,12 +93,19 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     @Override
     public boolean move() {
+        // Проверяем, может ли робот переместиться на следующую позицию
         if (!canMove()) {
             return false;
         }
+
+        // Рассчитываем следующую позицию и обновляем текущую позицию робота
         Position nextPosition = calculateNextPosition();
         this.position = nextPosition;
-        this.notifyObservers();
+
+
+            notifyObservers();
+
+
         return true;
     }
 

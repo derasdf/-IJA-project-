@@ -5,51 +5,10 @@
  */ 
 package ija.ija2023.homework2.tool.view;
 
-import ija.ija2023.homework2.common.Obstacle;
-import ija.ija2023.homework2.common.Robot;
-import ija.ija2023.homework2.tool.common.Observable;
-import ija.ija2023.homework2.tool.common.ToolEnvironment;
-import ija.ija2023.homework2.tool.common.ToolRobot;
+import javax.swing.JPanel;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.List;
 public class FieldView extends JPanel {
-    ToolEnvironment env;
-    private List<RobotView> rViews = new ArrayList<>();
-    public FieldView(ToolEnvironment env){
-        this.env = env;
-        this.setLayout(null);
-        this.setPreferredSize(new Dimension(1000, 1000));
+    public FieldView() {
+        // Constructor implementation
     }
-    protected void paintComponent(Graphics g){
-        super.paintComponent(g);
-        Graphics2D g2D = (Graphics2D) g;
-        for (Obstacle obstacle : env.myObstacleslist()) {
-            g.fillRect(1000/env.cols() * (obstacle.getPosition().getCol()-1) , 1000 / env.rows() * (obstacle.getPosition().getRow()-1), 1000 / env.cols(), 1000 / env.rows());
-        }
-        for (ToolRobot robot : env.robots()) {
-            if (robot instanceof Robot) {
-                for (RobotView rV : rViews) {
-                    if (rV.getRobot() == robot) {
-                        this.remove(rV);
-                        rViews.remove(rV);
-                        robot.removeObserver(rV);
-                        this.revalidate();
-                    }
-                }
-                RobotView robotView = new RobotView((Robot)robot, env);
-                rViews.add(robotView);
-                robotView.setBounds(1000 / env.cols() * (robot.getPosition().getCol()-1), 1000 / env.rows() * (robot.getPosition().getRow()-1), robotView.getPreferredSize().width, robotView.getPreferredSize().height);
-                this.add(robotView);
-                robot.addObserver(robotView);
-            }
-            }
-
-
-
-    }
-
 }

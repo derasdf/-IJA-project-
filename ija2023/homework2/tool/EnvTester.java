@@ -2,17 +2,16 @@
  * EnvTester.java
  * @author Aleksandrov Vladimir xaleks03
  * @author Volodymyr Burylov xburyl00
- */
+ */ 
 package ija.ija2023.homework2.tool;
 
-import ija.ija2023.homework2.tool.common.Observable;
 import ija.ija2023.homework2.tool.common.ToolEnvironment;
 import ija.ija2023.homework2.tool.common.ToolRobot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnvTester implements Observable.Observer {
+public class EnvTester {
     private final ToolEnvironment environment;
     private final List<ToolRobot> notifiedRobots;
 
@@ -23,7 +22,7 @@ public class EnvTester implements Observable.Observer {
 
     public List<ToolRobot> checkEmptyNotification() {
         // Verify that no object (view) has been notified
-        return notifiedRobots.isEmpty() ? new ArrayList<>() : notifiedRobots;
+        return notifiedRobots.isEmpty() ? new ArrayList<>() : null;
     }
 
     public boolean checkNotification(StringBuilder msg, ToolRobot obj) {
@@ -34,15 +33,8 @@ public class EnvTester implements Observable.Observer {
             msg.append("Error: Robot ").append(obj).append(" was notified multiple times.");
             return false;
         } else {
-            notifiedRobots.clear();
+            notifiedRobots.add(obj);
             return true;
-        }
-    }
-
-    @Override
-    public void update(Observable o) {
-        if (o instanceof ToolRobot) {
-            notifiedRobots.add((ToolRobot) o);
         }
     }
 }

@@ -17,23 +17,22 @@ public abstract class AbstractObservableRobot implements ToolRobot, Observable {
 
     @Override
     public void addObserver(Observable.Observer o) {
+        // Register a new observer
         observers.add(o);
     }
 
     @Override
     public void removeObserver(Observable.Observer o) {
+        // Remove an observer
         observers.remove(o);
-    }
-    public List<Observable.Observer> getObservers()
-    {
-        return this.observers;
     }
 
     @Override
     public void notifyObservers() {
-        if (this.observers != null && !this.observers.isEmpty()) {
-            for (Observable.Observer observer : this.observers) {
-                observer.update(this);
+        // Notify all registered observers about the change in the object's state
+        if (observers != null && !observers.isEmpty()) {
+            for (Observable.Observer observer : observers) {
+                observer.update();
             }
         }
     }
