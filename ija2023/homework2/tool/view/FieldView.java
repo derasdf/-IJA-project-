@@ -26,26 +26,24 @@ public class FieldView extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2D = (Graphics2D) g;
-        g2D.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+        g2D.drawRect(0, 0, getWidth() - 1, getHeight());
 
-        // Scale obstacles
         for (Obstacle obstacle : env.myObstacleslist()) {
-            int scaledWidth = FIELD_SIZE / env.cols();
-            int scaledHeight = FIELD_SIZE / env.rows();
-            int scaledX = scaledWidth * (obstacle.getPosition().getCol() - 1);
-            int scaledY = scaledHeight * (obstacle.getPosition().getRow() - 1);
+            int scaledWidth = FIELD_SIZE / (env.cols()) ;
+            int scaledHeight = FIELD_SIZE /(env.rows());
+            int scaledX = scaledWidth * (obstacle.getPosition().getCol());
+            int scaledY = scaledHeight * (obstacle.getPosition().getRow());
             g.fillRect(scaledX, scaledY, scaledWidth, scaledHeight);
         }
 
-        // Scale robots
         for (ToolRobot robot : env.robots()) {
             if (robot instanceof Robot) {
                 boolean found = false;
                 for (RobotView rV : rViews) {
                     if (rV.getRobot() == robot) {
                         found = true;
-                        int scaledX = FIELD_SIZE / env.cols() * (robot.getPosition().getCol() - 1);
-                        int scaledY = FIELD_SIZE / env.rows() * (robot.getPosition().getRow() - 1);
+                        int scaledX = FIELD_SIZE / (env.cols()) * (robot.getPosition().getCol());
+                        int scaledY = FIELD_SIZE / (env.rows()) * (robot.getPosition().getRow());
                         rV.setLocation(scaledX, scaledY);
                         rV.repaint();
                         break;
@@ -54,8 +52,8 @@ public class FieldView extends JPanel {
                 if (!found) {
                     RobotView robotView = new RobotView((Robot) robot, env);
                     rViews.add(robotView);
-                    int scaledX = FIELD_SIZE / env.cols() * (robot.getPosition().getCol() - 1);
-                    int scaledY = FIELD_SIZE / env.rows() * (robot.getPosition().getRow() - 1);
+                    int scaledX = FIELD_SIZE / env.cols() * (robot.getPosition().getCol());
+                    int scaledY = FIELD_SIZE / env.rows() * (robot.getPosition().getRow());
                     robotView.setBounds(scaledX, scaledY, robotView.getPreferredSize().width, robotView.getPreferredSize().height);
                     this.add(robotView);
                     robot.addObserver(robotView);

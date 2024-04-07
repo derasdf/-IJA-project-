@@ -31,7 +31,7 @@ public class EnvPresenter {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(FIELD_SIZE, FIELD_SIZE);
-        frame.getContentPane().setLayout(new FlowLayout());
+        //frame.getContentPane().setLayout(new FlowLayout());
         frame.getContentPane().add(field);
         frame.setLocationRelativeTo(null);
         frame.pack();

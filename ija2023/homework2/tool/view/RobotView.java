@@ -10,9 +10,7 @@ import ija.ija2023.homework2.common.Environment;
 import ija.ija2023.homework2.common.Robot;
 import ija.ija2023.homework2.room.ControlledRobot;
 import ija.ija2023.homework2.room.Room;
-//---
 
-//--- Importy z baliku dodaneho nastroje
 import ija.ija2023.homework2.tool.EnvTester;
 import ija.ija2023.homework2.tool.common.Position;
 import ija.ija2023.homework2.tool.common.ToolEnvironment;
@@ -41,8 +39,8 @@ public class RobotView extends JComponent implements ComponentView, Observable.O
         this.col = r.getPosition().getCol();
         this.allrow = env.cols();
         this.allcol = env.rows();
-        this.width = FIELD_SIZE / env.cols() ;
-        this.height = FIELD_SIZE / env.rows();
+        this.width = FIELD_SIZE / (env.cols()) ;
+        this.height = FIELD_SIZE / (env.rows());
         this.setPreferredSize(new Dimension(this.width, this.height));
         this.rob = r;
     }
@@ -67,25 +65,24 @@ public class RobotView extends JComponent implements ComponentView, Observable.O
         g.setColor(Color.RED);
         g.fillOval( this.width/4, this.height/4, this.width/2 , this.height/2);
         g.setColor(Color.BLACK);
+        int scale = FIELD_SIZE * 15 /1000;
         if (angle == 0) {
-            g.fillOval(this.width / 2 - 7 , this.height/4 - 7, 15, 15);
+            g.fillOval(this.width / 2 - scale/2 , this.height/4 - scale/2, scale, scale);
         } else if (angle == 45) {
-            g.fillOval(this.width/4*3 - 15 , this.height/4 + 7, 15, 15);
+            g.fillOval(this.width/4*3 - scale , this.height/4 + scale/2, scale, scale);
         } else if (angle == 90) {
-            g.fillOval(this.width - 7, this.height/2 - 7, 15, 15);
+            g.fillOval(this.width/4*3 - scale/2, this.height/2 - scale/2, scale, scale);
         } else if (angle == 135) {
-            g.fillOval(this.width/4*3 - 15, this.height - 7, 15, 15);
+            g.fillOval(this.width/4*3 - scale, this.height*5/8 - scale/2, scale, scale);
         } else if (angle == 180) {
-            g.fillOval(this.width/2 - 7, this.height- 7, 15, 15);
+            g.fillOval(this.width/2 - scale/2, this.height*3/4  - scale/2, scale, scale);
         } else if (angle == 225) {
-            g.fillOval(this.width/4 - 7, this.height- 7, 15, 15);
+            g.fillOval(this.width/4 - scale/2, this.height*5/8   - scale/2, scale, scale);
         } else if (angle == 270) {
-            g.fillOval(this.width/4 - 7 , this.height/2 - 7, 15, 15);
+            g.fillOval(this.width/4 - scale/2 , this.height/2 - scale/2, scale, scale);
         } else if (angle == 315) {
-            g.fillOval(this.width/4- 7 , this.height/4- 7, 15, 15);
+            g.fillOval(this.width/4 - scale/2, this.height/4 + scale/2, scale, scale);
         }
-
-
     }
 
 }
