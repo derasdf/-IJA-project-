@@ -13,4 +13,5 @@ public interface Robot extends ToolRobot {
     Position getPosition();
     boolean move();
     void turn(int n);
+    void turn();
 }

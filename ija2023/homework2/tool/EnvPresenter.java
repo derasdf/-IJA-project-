@@ -5,26 +5,41 @@
  */ 
 package ija.ija2023.homework2.tool;
 
+import ija.ija2023.homework2.common.Robot;
+import ija.ija2023.homework2.tool.common.Observable;
 import ija.ija2023.homework2.tool.common.Position;
-import ija.ija2023.homework2.tool.view.FieldView; 
+import ija.ija2023.homework2.tool.common.ToolRobot;
+import ija.ija2023.homework2.tool.view.FieldView;
 import ija.ija2023.homework2.tool.common.ToolEnvironment;
+import ija.ija2023.homework2.tool.view.RobotView;
+
+import javax.swing.JFrame;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
 public class EnvPresenter {
-    private ija.ija2023.homework2.tool.common.ToolEnvironment environment; // Corrected package name
-
-    public EnvPresenter(ija.ija2023.homework2.tool.common.ToolEnvironment env) { // Corrected package name
-        this.environment = env;
+    public static final int FIELD_SIZE = 1000;
+    ToolEnvironment env;
+    public EnvPresenter(ToolEnvironment env)
+    {
+        this.env = env;
     }
-
     public void open() {
-        // Create, initialize, and open GUI
-        // This is a placeholder for GUI initialization
-        System.out.println("Opening GUI..."); // Placeholder message
+
+        FieldView field = new FieldView(env);
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(FIELD_SIZE, FIELD_SIZE);
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(field);
+        frame.setLocationRelativeTo(null);
+        frame.pack();
+        frame.setVisible(true);
+
     }
 
     public FieldView fieldAt(Position pos) {
-        // Placeholder method for retrieving FieldView at a given position
-        // You would need to implement this method based on your application requirements
         return null;
     }
 }
