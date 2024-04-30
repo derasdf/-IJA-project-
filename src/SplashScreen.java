@@ -20,16 +20,13 @@ public class SplashScreen extends Application{
         startButton.setMaxSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
         startButton.setOnAction(e -> {
             System.out.println("Стартовое действие запущено!");
-            Stage newWindow = new Stage();
-            StackPane secondaryLayout = new StackPane();
-            Scene secondScene = new Scene(secondaryLayout, 800, 800);
-
-
-            newWindow.setTitle("Новое окно");
-            newWindow.setScene(secondScene);
-
-
-            newWindow.show();
+            Application app = new RoomCreationWindow();
+            Stage newStage = new Stage();
+            try {
+                app.start(newStage);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
             primaryStage.close();
         });
 
@@ -37,12 +34,12 @@ public class SplashScreen extends Application{
 
         StackPane root = new StackPane();
         root.getChildren().addAll( startButton);
-        StackPane.setAlignment(startButton, Pos.CENTER); // Выравнивание кнопки по центру
+        StackPane.setAlignment(startButton, Pos.CENTER);
 
 
         Scene scene = new Scene(root, 800, 800);
 
-
+        scene.getStylesheets().add("style.css");
         primaryStage.setTitle("Стартовое окно");
         primaryStage.setScene(scene);
         primaryStage.show();
