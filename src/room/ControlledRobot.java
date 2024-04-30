@@ -10,7 +10,7 @@ import tool.common.Position;
 import common.Robot;
 
 public class ControlledRobot extends AbstractObservableRobot implements Robot {
-    private int angle;
+    private int angle = 0;
     private Environment environment;
     private Position position;
     private ControlledRobot(Environment environment, Position position) {
@@ -42,7 +42,7 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     }
     @Override
     public int angle() {
-        return angle;
+        return this.angle;
     }
 
     @Override

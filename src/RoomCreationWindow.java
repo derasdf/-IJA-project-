@@ -18,7 +18,7 @@ public class RoomCreationWindow extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Create Room");
 
-        // Создание и настройка компонентов
+
         Label titleLabel = new Label("Create room");
         Label rowsLabel = new Label("Rows = ");
         Label columnsLabel = new Label("Columns = ");
@@ -42,7 +42,7 @@ public class RoomCreationWindow extends Application {
             primaryStage.close();
         });
 
-        // Размещение компонентов в GridPane
+
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(50);

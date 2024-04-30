@@ -34,7 +34,7 @@ public class SplashScreen extends Application{
 
         StackPane root = new StackPane();
         root.getChildren().addAll( startButton);
-        StackPane.setAlignment(startButton, Pos.CENTER); // Выравнивание кнопки по центру
+        StackPane.setAlignment(startButton, Pos.CENTER);
 
 
         Scene scene = new Scene(root, 800, 800);
