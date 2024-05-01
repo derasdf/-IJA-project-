@@ -6,6 +6,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.Screen;
+import javafx.geometry.Rectangle2D;
 
 public class SplashScreen extends Application{
     @Override
@@ -20,7 +22,7 @@ public class SplashScreen extends Application{
         startButton.setMaxSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
         startButton.setOnAction(e -> {
             System.out.println("Стартовое действие запущено!");
-            Application app = new RoomCreationWindow();
+            Application app = new RoomWindow();;
             Stage newStage = new Stage();
             try {
                 app.start(newStage);
@@ -37,11 +39,13 @@ public class SplashScreen extends Application{
         StackPane.setAlignment(startButton, Pos.CENTER);
 
 
-        Scene scene = new Scene(root, 800, 800);
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
 
         scene.getStylesheets().add("style.css");
         primaryStage.setTitle("Стартовое окно");
         primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 

@@ -5,20 +5,20 @@
 package common;
 import java.util.Objects;
 public class Position {
-    private int row;
-    private int col;
+    private int width;
+    private int height;
 
-    public Position(int row, int col) {
-        this.row = row;
-        this.col = col;
+    public Position(int width, int height) {
+        this.width = width;
+        this.height = height;
     }
 
-    public int getRow() {
-        return row;
+    public int getWidth() {
+        return width;
     }
 
-    public int getCol() {
-        return col;
+    public int getHeight() {
+        return height;
     }
 
     @Override
@@ -26,19 +26,19 @@ public class Position {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Position position = (Position) o;
-        return row == position.row && col == position.col;
+        return width == position.width && height == position.height;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(row, col);
+        return Objects.hash(width, height);
     }
 
     @Override
     public String toString() {
         return "Position{" +
-                "row=" + row +
-                ", col=" + col +
+                "row=" + width +
+                ", col=" + height +
                 '}';
     }
 }

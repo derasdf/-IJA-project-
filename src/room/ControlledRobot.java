@@ -13,16 +13,18 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     private int angle = 0;
     private Environment environment;
     private Position position;
-    private ControlledRobot(Environment environment, Position position) {
+    private int size;
+    private ControlledRobot(Environment environment, Position position, int size) {
         this.environment = environment;
         this.position = position;
+        this.size = size;
     }
 
-    public static ControlledRobot create(Environment environment, Position position) {
-        if (!environment.containsPosition(position) || environment.obstacleAt(position)) {
+    public static ControlledRobot create(Environment environment, Position position, int size) {
+        if (!environment.containsPosition(position, size) || environment.obstacleAt(position, size) || environment.robotAt(position, size)) {
             return null;
         }
-        ControlledRobot robot = new ControlledRobot(environment, position);
+        ControlledRobot robot = new ControlledRobot(environment, position, size);
         if (!environment.addRobot(robot)) {
             return null;
         }
@@ -47,19 +49,26 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     @Override
     public boolean canMove() {
+        return false;
+    }
+/*
+    @Override
+    public boolean canMove() {
 
         Position nextPosition = calculateNextPosition();
 
 
-        if (!environment.containsPosition(nextPosition)) {
+        if (!environment.containsPosition(nextPosition, size)) {
             return false;
         }
 
 
-        return !environment.obstacleAt(nextPosition) && !environment.robotAt(nextPosition);
+        return !environment.obstacleAt(nextPosition) && !environment.robotAt(nextPosition, size);
     }
+    */
 
-    private Position calculateNextPosition() {
+
+    /*private Position calculateNextPosition() {
         int row = position.getRow();
         int col = position.getCol();
 
@@ -91,10 +100,10 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
         int nextRow = row + deltaRow;
         int nextCol = col + deltaCol;
         return new Position(nextRow, nextCol);
-    }
+    }*/
 
 
-    @Override
+   /* @Override
     public boolean move() {
         if (!canMove()) {
             return false;
@@ -105,11 +114,19 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
         return true;
     }
 
+    */
+
     @Override
     public Position getPosition() {
         return position;
     }
 
+    public int getSize() {
+        return size;
+    }
 
-
+    @Override
+    public boolean move() {
+        return false;
+    }
 }

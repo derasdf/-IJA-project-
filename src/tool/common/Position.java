@@ -5,20 +5,20 @@
  */ 
 package tool.common;
 public class Position extends Object {
-    private final int row;
-    private final int col;
+    private final int width;
+    private final int height;
 
-    public Position(int row, int col) {
-        this.row = row;
-        this.col = col;
+    public Position(int width, int height) {
+        this.width = width;
+        this.height = height;
     }
 
-    public int getRow() {
-        return row;
+    public int getWidth() {
+        return width;
     }
 
-    public int getCol() {
-        return col;
+    public int getHeight() {
+        return height;
     }
 
     @Override
@@ -26,20 +26,20 @@ public class Position extends Object {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Position position = (Position) o;
-        return row == position.row && col == position.col;
+        return width == position.width && height == position.height;
     }
 
     @Override
     public int hashCode() {
         int result = 17;
-        result = 31 * result + row;
-        result = 31 * result + col;
+        result = 31 * result + width;
+        result = 31 * result + height;
         return result;
     }
 
     @Override
     public String toString() {
-        return "(" + row + ", " + col + ")";
+        return "(" + width + ", " + height + ")";
     }
 }
 

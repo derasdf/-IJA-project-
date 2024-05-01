@@ -1,11 +1,13 @@
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
 import room.Room;
@@ -32,7 +34,7 @@ public class RoomCreationWindow extends Application {
             columns = columnsSpinner.getValue();
             System.out.println("Rows: " + rows + ", Columns: " + columns);
             Environment room = Room.create(rows, columns);
-            Application app = new RoomWindow(room);
+            Application app = new RoomWindow();
             Stage newStage = new Stage();
             try {
                 app.start(newStage);
@@ -57,11 +59,11 @@ public class RoomCreationWindow extends Application {
         grid.add(columnsSpinner, 1, 2);
         grid.add(createButton, 0, 3, 2, 1);
         GridPane.setHalignment(createButton, HPos.CENTER);
-
-        // Настройка сцены и отображение
-        Scene scene = new Scene(grid, 800, 800);
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        Scene scene = new Scene(grid, screenBounds.getWidth(), screenBounds.getHeight());
         scene.getStylesheets().add("style.css");
         primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 

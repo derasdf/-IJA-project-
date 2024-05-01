@@ -11,6 +11,7 @@ public interface Robot extends ToolRobot {
     int angle();
     boolean canMove();
     Position getPosition();
+    int getSize();
     boolean move();
     void turn(int n);
     void turn();

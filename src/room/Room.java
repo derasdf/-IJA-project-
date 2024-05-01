@@ -13,75 +13,141 @@ import tool.common.ToolRobot;
 import java.util.ArrayList;
 import java.util.List;
 public class Room implements Environment {
-    private int rows;
-    private int cols;
-    private boolean[][] obstacles;
-    private boolean[][] robots;
-    private List<ToolRobot> myRobots = new ArrayList<>();
-    private List<Obstacle> myObstacles = new ArrayList<>();
+    private int width;
+    private int height;
+    private List<ControlledRobot> myRobots;
+    private List<Obstacle> myObstacles;
 
-    private Room(int rows, int cols) {
-        if (rows <= 0 || cols <= 0) {
+    private Room(int width, int height) {
+        if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("Rozmery mistnosti musi byt vetsi nez 0");
         }
-        this.rows = rows;
-        this.cols = cols;
-        this.obstacles = new boolean[rows][cols];
-        this.robots = new boolean[rows][cols];
+        this.width = width;
+        this.height = height;
+        this.myObstacles = new ArrayList<>();
+        this.myRobots = new ArrayList<>();
     }
 
-    public static Room create(int rows, int cols) {
-        return new Room(rows, cols);
+    public static Room create(int width, int height) {
+        return new Room(width, height);
     }
 
     @Override
     public boolean addRobot(Robot robot) {
         Position pos = robot.getPosition();
-        if (!containsPosition(pos)) {
+        int size = robot.getSize();
+        if (!containsPosition(pos, size)) {
             return false;
         }
-        if (obstacleAt(pos) || robotAt(pos)) {
+        if (obstacleAt(pos, size) || robotAt(pos, size)) {
             return false;
         }
-
-        myRobots.add((ToolRobot)robot);
-        int row = pos.getRow();
-        int col = pos.getCol();
-        robots[row][col] = true;
+        myRobots.add((ControlledRobot)robot);
         return true;
     }
 
     @Override
-    public boolean createObstacleAt(int row, int col) {
-        if (!containsPosition(new Position(row, col))) {
+    public boolean createObstacleAt(int width, int height, int size) {
+        if (!containsPosition(new Position(width, height), size)) {
             return false;
         }
-        Obstacle obstacle = new Obstacle(this, new Position(row, col));
+        Position pos = new Position(width, height);
+        if (obstacleAt(pos, size) || robotAt(pos, size)) {
+            return false;
+        }
+        Obstacle obstacle = new Obstacle(this, new Position(width, height), size);
         myObstacles.add(obstacle);
-        obstacles[row][col] = true;
         return true;
     }
 
     @Override
-    public boolean obstacleAt(int row, int col) {
-        return obstacles[row][col];
+    public boolean obstacleAt(int width, int height, int size) {
+        int newRight = width + size;
+        int newBottom = height + size;
+
+        for (Obstacle obstacle : myObstacles) {
+            Position pos = obstacle.getPosition();
+            int obsX = pos.getWidth();
+            int obsY = pos.getHeight();
+            int obsSize = obstacle.getSize();
+            int obsRight = obsX + obsSize;
+            int obsBottom = obsY + obsSize;
+
+
+            if (newRight > obsX && width < obsRight &&
+                    newBottom > obsY && height < obsBottom) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
-    public boolean obstacleAt(Position p) {
-        return obstacles[p.getRow()][p.getCol()];
+    public boolean obstacleAt(Position p, int size) {
+        int width = p.getWidth();
+        int height = p.getHeight();
+
+        int newRight = width + size;
+        int newBottom = height + size;
+
+        for (Obstacle obstacle : myObstacles) {
+            Position pos = obstacle.getPosition();
+            int obsX = pos.getWidth();
+            int obsY = pos.getHeight();
+            int obsSize = obstacle.getSize();
+            int obsRight = obsX + obsSize;
+            int obsBottom = obsY + obsSize;
+            if (newRight > obsX && width < obsRight &&
+                    newBottom > obsY && height < obsBottom) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
-    public boolean robotAt(Position p) {
-        return robots[p.getRow()][p.getCol()];
+    public int getWidth() {
+        return width;
     }
 
     @Override
-    public boolean containsPosition(Position pos) {
-        int row = pos.getRow();
-        int col = pos.getCol();
-        return row >= 0 && row < rows && col >= 0 && col < cols;
+    public int getHeight() {
+        return height;
+    }
+
+    @Override
+    public boolean robotAt(Position p, int size) {
+        int width = p.getWidth();
+        int height = p.getHeight();
+
+        int newRight = width + size;
+        int newBottom = height + size;
+
+        for (ControlledRobot robot : myRobots) {
+            Position pos = robot.getPosition();
+            int robX = pos.getWidth();
+            int robY = pos.getHeight();
+            int robSize = robot.getSize();
+            int robRight = robX + robSize;
+            int robBottom = robY + robSize;
+
+
+            if (newRight > robX && width < robRight &&
+                    newBottom > robY && height < robBottom) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean containsPosition(Position pos, int size) {
+        int widths = pos.getWidth();
+        int heights = pos.getHeight();
+        return widths >= 0 && widths + size <= width && heights >= 0 && heights + size < height;
     }
 
     @Override
@@ -94,14 +160,11 @@ public class Room implements Environment {
 
     }
 
-
-    @Override
-    public int cols() {
-        return cols;
+    public void clearRobots(){
+        myRobots.clear();
+    }
+    public void clearObstacles(){
+        myObstacles.clear();
     }
 
-    @Override
-    public int rows() {
-        return rows;
-    }
 }

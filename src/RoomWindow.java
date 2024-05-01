@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -10,97 +11,85 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
 import tool.common.Position;
 import room.ControlledRobot;
 import room.Room;
 import common.Robot;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javax.swing.JOptionPane;
 
 public class RoomWindow extends Application {
-    private Environment room;
-    private Rectangle[][] gridCells;
-    private GridPane grid;
-    int SizeCols = 0;
-    int SizeRows = 0;
-
-    public RoomWindow(Environment room) {
-        this.room = room;
-        this.gridCells = new Rectangle[room.rows()][room.cols()];
-    }
+    private Canvas canvas;
+    Environment room;
 
     @Override
     public void start(Stage primaryStage) {
-        // Создаем GridPane
-        grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
-
-
-        VBox vbox = new VBox();
-        vbox.setAlignment(Pos.TOP_CENTER);
-
-        // Создаем заголовок
-        Label titleLabel = new Label("Room");
-        titleLabel.setStyle("-fx-font-size: 25px;");
-        vbox.getChildren().add(titleLabel);
-
-        HBox hbox = new HBox(10);
-        hbox.setAlignment(Pos.CENTER);
+        canvas = new Canvas(600, 600);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(Color.LIGHTGRAY);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        room = Room.create(600, 600);
 
         Button btnCreateRobot = new Button("Create Robot");
+        btnCreateRobot.setPrefSize(200, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
 
         Button btnCreateObstacle = new Button("Create Obstacle");
+        btnCreateObstacle.setPrefSize(200, 50);
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
-        // Размер каждой ячейки
-        final int size = 400;
-        SizeCols = size / this.room.cols();
-        SizeRows = size / this.room.rows();
-        grid.setAlignment(Pos.CENTER);
-        // Создаем сетку из Rectangle
-        for (int row = 0; row < this.room.rows(); row++) {
-            for (int col = 0; col < this.room.cols(); col++) {
-                Rectangle rect = new Rectangle(SizeCols, SizeRows);
-                rect.setStroke(Color.BLACK);
-                rect.setFill(Color.TRANSPARENT);
 
-                grid.add(rect, col, row);
-                gridCells[row][col] = rect;
-            }
-        }
+        Button btnClear = new Button("Clear");
+        btnClear.setPrefSize(200, 50); // Установка предпочтительного размера
+        btnClear.setOnAction(e -> clearCanvas(gc)); // Действие на очистку холста
 
+        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear);
+        hboxButtons.setAlignment(Pos.CENTER);
+        VBox vbox = new VBox(10, hboxButtons, canvas);
+        vbox.setAlignment(Pos.CENTER);
 
-        hbox.getChildren().addAll(btnCreateRobot, grid, btnCreateObstacle);
-
-        vbox.getChildren().addAll(hbox);
-
-
-        Scene scene = new Scene(vbox, 800, 800);
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        Scene scene = new Scene(vbox, screenBounds.getWidth(), screenBounds.getHeight());
         primaryStage.setTitle("Room Grid Window");
         primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
         primaryStage.show();
+    }
+
+    private void clearCanvas(GraphicsContext gc) {
+        gc.setFill(Color.LIGHTGRAY);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        room.clearRobots();
+        room.clearObstacles();
     }
 
     private void openRobotDialog() {
         Stage dialog = new Stage();
-        VBox dialogVbox = new VBox(20);
+        VBox dialogVbox = new VBox(10);
         dialogVbox.setAlignment(Pos.CENTER);
 
-        Spinner<Integer> spinnerRow = new Spinner<>(1, room.rows(), 1);
-        Spinner<Integer> spinnerCol = new Spinner<>(1, room.cols(), 1);
-        //Spinner<Integer> spinnerAngle = new Spinner<>(0, 360, 0, 45);
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            Position p = new Position(spinnerRow.getValue() - 1,spinnerCol.getValue() - 1);
-            Robot robot = ControlledRobot.create(room, p);
-            if (robot != null) {
-                updateRobotCell(p.getRow(), p.getCol());
+            Position pos = new Position(spinnerX.getValue(), spinnerY.getValue());
+            ControlledRobot robot = ControlledRobot.create(room, pos, 30);
+            if(robot == null)
+            {
+                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            else
+            {
+                drawRobot(spinnerX.getValue(), spinnerY.getValue());
             }
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(new Label("Row ="), spinnerRow, new Label("Column ="), spinnerCol, btnCreate);
+        dialogVbox.getChildren().addAll(new Label("X Coordinate:"), spinnerX, new Label("Y Coordinate:"), spinnerY, btnCreate);
 
         Scene dialogScene = new Scene(dialogVbox, 300, 200);
         dialog.setScene(dialogScene);
@@ -109,37 +98,50 @@ public class RoomWindow extends Application {
 
     private void openObstacleDialog() {
         Stage dialog = new Stage();
-        VBox dialogVbox = new VBox(20);
+        VBox dialogVbox = new VBox(10);
         dialogVbox.setAlignment(Pos.CENTER);
 
-        Spinner<Integer> spinnerRow = new Spinner<>(1, room.rows(), 1);
-        Spinner<Integer> spinnerCol = new Spinner<>(1, room.cols(), 1);
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
+        Spinner<Integer> spinnerSize = new Spinner<>(1, 100, 10);
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            int row = spinnerRow.getValue() - 1;
-            int col = spinnerCol.getValue() - 1;
-            if (room.createObstacleAt(row, col)) {
-                updateObstacleCell(row, col);
+            if(!room.createObstacleAt(spinnerX.getValue(), spinnerY.getValue(), spinnerSize.getValue()))
+            {
+                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+
+            }
+            else
+            {
+                drawObstacle(spinnerX.getValue(), spinnerY.getValue(), spinnerSize.getValue());
             }
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(new Label("Row ="), spinnerRow, new Label("Column ="), spinnerCol, btnCreate);
+        dialogVbox.getChildren().addAll(
+                new Label("X Coordinate:"), spinnerX,
+                new Label("Y Coordinate:"), spinnerY,
+                new Label("Size:"), spinnerSize,
+                btnCreate);
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 200);
+        Scene dialogScene = new Scene(dialogVbox, 300, 250);
         dialog.setScene(dialogScene);
         dialog.show();
     }
 
-    private void updateRobotCell(int row, int col) {
-        Circle circle = new Circle(SizeCols / 2, Color.BLUE);
-        grid.add(circle, col, row);
+    private void drawRobot(int x, int y) {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(Color.BLUE);
+        gc.fillOval(x - 15, y - 15, 30, 30);
     }
 
-    private void updateObstacleCell(int row, int col) {
-        gridCells[row][col].setFill(Color.RED);
+    private void drawObstacle(int x, int y, int size) {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(Color.RED);
+        gc.fillRect(x - size/2, y - size/2, size, size);
     }
+
     public static void main(String[] args) {
         launch(args);
     }

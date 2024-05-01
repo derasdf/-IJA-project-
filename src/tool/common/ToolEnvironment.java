@@ -11,9 +11,9 @@ import common.Obstacle;
 import java.util.List;
 
 public interface ToolEnvironment {
-    boolean obstacleAt(Position p);
-    int rows();
-    int cols();
+    boolean obstacleAt(Position p, int size);
+    int getWidth();
+    int getHeight();
     List<ToolRobot> robots();
     List<Obstacle> myObstacleslist();
 }
