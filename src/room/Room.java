@@ -74,8 +74,7 @@ public class Room implements Environment {
             int obsBottom = obsY + obsSize;
 
 
-            if (newRight > obsX && width < obsRight &&
-                    newBottom > obsY && height < obsBottom) {
+            if(((newRight > obsX && newRight < obsRight) || (width > obsX && width < obsRight) || (width < obsX && newRight > obsRight)) && ((newBottom > obsY && newBottom < obsBottom) || (height > obsY && height < obsBottom) || (height < obsY && newBottom > obsBottom))) {
                 return true;
             }
         }
@@ -92,20 +91,22 @@ public class Room implements Environment {
         int newBottom = height + size;
 
         for (Obstacle obstacle : myObstacles) {
+
             Position pos = obstacle.getPosition();
             int obsX = pos.getWidth();
             int obsY = pos.getHeight();
             int obsSize = obstacle.getSize();
             int obsRight = obsX + obsSize;
             int obsBottom = obsY + obsSize;
-            if (newRight > obsX && width < obsRight &&
-                    newBottom > obsY && height < obsBottom) {
-                return true;
+            if(((newRight > obsX && newRight < obsRight) || (width > obsX && width < obsRight) || (width < obsX && newRight > obsRight)) && ((newBottom > obsY && newBottom < obsBottom) || (height > obsY && height < obsBottom) || (height < obsY && newBottom > obsBottom))) {
+               return true;
             }
+
         }
 
         return false;
     }
+
 
     @Override
     public int getWidth() {
@@ -134,8 +135,7 @@ public class Room implements Environment {
             int robBottom = robY + robSize;
 
 
-            if (newRight > robX && width < robRight &&
-                    newBottom > robY && height < robBottom) {
+            if(((newRight > robX && newRight < robRight) || (width > robX && width < robRight) || (width < robX && newRight > robRight)) && ((newBottom > robY && newBottom < robBottom) || (height > robY && height < robBottom) || (height < robY && newBottom > robBottom))) {
                 return true;
             }
         }

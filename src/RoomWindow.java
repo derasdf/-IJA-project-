@@ -76,7 +76,8 @@ public class RoomWindow extends Application {
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            Position pos = new Position(spinnerX.getValue(), spinnerY.getValue());
+            Position pos = new Position(spinnerX.getValue() - 15, spinnerY.getValue() - 15);
+            System.out.println("" + room.obstacleAt(pos, 30) + " " + room.robotAt(pos, 30));
             ControlledRobot robot = ControlledRobot.create(room, pos, 30);
             if(robot == null)
             {
@@ -107,7 +108,8 @@ public class RoomWindow extends Application {
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            if(!room.createObstacleAt(spinnerX.getValue(), spinnerY.getValue(), spinnerSize.getValue()))
+            int size = spinnerSize.getValue();
+            if(!room.createObstacleAt(spinnerX.getValue() - size/2, spinnerY.getValue()- size/2, size))
             {
                 JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
 
