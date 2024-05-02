@@ -35,7 +35,7 @@ public class RoomCreationWindow extends Application {
             rows = rowsSpinner.getValue();
             columns = columnsSpinner.getValue();
             System.out.println("Rows: " + rows + ", Columns: " + columns);
-            loadMap("room_maps/room1.txt"); // Load the map
+            loadMap(System.getProperty("user.dir")+"/src/room_maps/room1.txt"); // Load the map
             launchRoomWindow();
             primaryStage.close();
         });

@@ -42,10 +42,13 @@ public class RoomWindow extends Application {
 
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(200, 50);
+        btnCreateRobot.setOnAction(e -> openRobotDialog());
         // Add action for creating robot
 
         Button btnCreateObstacle = new Button("Create Obstacle");
         btnCreateObstacle.setPrefSize(200, 50);
+        btnCreateObstacle.setOnAction(e -> openObstacleDialog());
+
         // Add action for creating obstacle
 
         Button btnClear = new Button("Clear");
