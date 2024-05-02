@@ -10,14 +10,19 @@ import tool.common.Position;
 import common.Robot;
 
 public class ControlledRobot extends AbstractObservableRobot implements Robot {
-    private int angle = 0;
+    private int angle;
     private Environment environment;
     private Position position;
     private int size;
+    private int speed;
+    private int turnAngle;
     private ControlledRobot(Environment environment, Position position, int size) {
         this.environment = environment;
         this.position = position;
         this.size = size;
+        this.angle = 50;
+        this.speed = 20;
+        this.turnAngle = 60;
     }
 
     public static ControlledRobot create(Environment environment, Position position, int size) {
@@ -34,7 +39,7 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     @Override
     public void turn(int n) {
-        angle = (angle + n * 45) % 360;
+        angle = (angle + n) % 360;
         this.notifyObservers();
     }
     @Override
@@ -44,7 +49,7 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     }
     @Override
     public int angle() {
-        return this.angle;
+        return angle;
     }
 
     @Override
@@ -120,6 +125,9 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     public Position getPosition() {
         return position;
     }
+    public void setPosition(Position position) {
+        this.position = position;
+    }
 
     public int getSize() {
         return size;
@@ -128,5 +136,21 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     @Override
     public boolean move() {
         return false;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public int getTurnAngle() {
+        return turnAngle;
+    }
+
+    public void setTurnAngle(int turnAngle) {
+        this.turnAngle = turnAngle;
     }
 }

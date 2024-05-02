@@ -21,15 +21,20 @@ import common.Robot;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javax.swing.JOptionPane;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+
 
 public class RoomWindow extends Application {
     private Canvas canvas;
     Environment room;
+    GraphicsContext gc;
 
     @Override
     public void start(Stage primaryStage) {
         canvas = new Canvas(600, 600);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room = Room.create(600, 600);
@@ -46,7 +51,11 @@ public class RoomWindow extends Application {
         btnClear.setPrefSize(200, 50); // Установка предпочтительного размера
         btnClear.setOnAction(e -> clearCanvas(gc)); // Действие на очистку холста
 
-        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear);
+        Button btnStartAut = new Button("Start automatic");
+        btnStartAut.setPrefSize(200, 50); // Установка предпочтительного размера
+        btnStartAut.setOnAction(e -> startAutomatic(gc)); // Действие на очистку холста
+
+        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox vbox = new VBox(10, hboxButtons, canvas);
         vbox.setAlignment(Pos.CENTER);
@@ -85,7 +94,7 @@ public class RoomWindow extends Application {
             }
             else
             {
-                drawRobot(spinnerX.getValue(), spinnerY.getValue());
+                drawRobot(pos.getWidth(), pos.getHeight());
             }
             dialog.close();
         });
@@ -135,7 +144,7 @@ public class RoomWindow extends Application {
     private void drawRobot(int x, int y) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.BLUE);
-        gc.fillOval(x - 15, y - 15, 30, 30);
+        gc.fillOval(x, y , 30, 30);
     }
 
     private void drawObstacle(int x, int y, int size) {
@@ -143,8 +152,48 @@ public class RoomWindow extends Application {
         gc.setFill(Color.RED);
         gc.fillRect(x - size/2, y - size/2, size, size);
     }
+    private void startAutomatic(GraphicsContext gc) {
+        double timeStep = 0.1; // Время в секундах между обновлениями
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(timeStep), e -> {
+            for (ControlledRobot robot : room.robots()) {
+                // Сохраняем старые координаты
+                int oldX = robot.getPosition().getWidth();
+                int oldY = robot.getPosition().getHeight();
+
+                // Рассчитываем новое положение на основе скорости и направления
+                double angleInRadians = Math.toRadians(robot.angle());
+                int speed = robot.getSpeed(); // предполагается, что скорость определена в robot
+                int newX = (int) (oldX + Math.cos(angleInRadians) * speed * timeStep);
+                int newY = (int) (oldY + Math.sin(angleInRadians) * speed * timeStep);
+                Position newPosition = new Position(newX, newY);
+                System.out.println("NewX = " + newX + " NewY= " + newY + " Size = " + robot.getSize() +  " Math.cos(angleInRadians) =  " + Math.cos(angleInRadians) + " Math.sin(angleInRadians) =  " + Math.sin(angleInRadians) + " speed = " + speed + " timeStep = " + timeStep);
+                // Проверка на столкновение
+                if (!room.obstacleAt(newPosition, robot.getSize()) && !room.robotAt(newPosition, robot.getSize()) && room.containsPosition(newPosition, robot.getSize())) {
+                    // Стираем робота на старой позиции
+                    clearRobotAt(gc, oldX, oldY, robot.getSize());
+
+                    // Обновляем позицию робота и рисуем его на новом месте
+                    robot.setPosition(newPosition);
+                    drawRobot(newX, newY);
+                } else {
+                    // Поворот на заданный угол при обнаружении препятствия
+                    robot.turn(robot.getTurnAngle()); // предполагается метод getTurnAngle
+                }
+            }
+        }));
+
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+
+    private void clearRobotAt(GraphicsContext gc, int x, int y, int size) {
+        gc.setFill(Color.LIGHTGRAY); // Цвет фона
+        gc.fillRect(x , y , 30, 30);
+    }
 
     public static void main(String[] args) {
         launch(args);
     }
+
 }

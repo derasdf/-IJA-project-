@@ -147,11 +147,11 @@ public class Room implements Environment {
     public boolean containsPosition(Position pos, int size) {
         int widths = pos.getWidth();
         int heights = pos.getHeight();
-        return widths >= 0 && widths + size <= width && heights >= 0 && heights + size < height;
+        return widths >= 0 && widths + size <= width && heights >= 0 && heights + size <= height;
     }
 
     @Override
-    public List<ToolRobot> robots() {
+    public List<ControlledRobot> robots() {
         return new ArrayList<>(myRobots);
 
     }
