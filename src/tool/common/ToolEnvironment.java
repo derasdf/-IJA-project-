@@ -7,6 +7,7 @@
 package tool.common;
 
 import common.Obstacle;
+import room.ControlledRobot;
 
 import java.util.List;
 
@@ -14,6 +15,6 @@ public interface ToolEnvironment {
     boolean obstacleAt(Position p, int size);
     int getWidth();
     int getHeight();
-    List<ToolRobot> robots();
+    List<ControlledRobot> robots();
     List<Obstacle> myObstacleslist();
 }

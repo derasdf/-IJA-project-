@@ -5,8 +5,8 @@
  */ 
 package tool.common;
 public class Position extends Object {
-    private final int width;
-    private final int height;
+    private int width;
+    private int height;
 
     public Position(int width, int height) {
         this.width = width;
