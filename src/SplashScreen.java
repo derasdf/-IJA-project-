@@ -22,7 +22,7 @@ public class SplashScreen extends Application{
         startButton.setMaxSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
         startButton.setOnAction(e -> {
             System.out.println("Стартовое действие запущено!");
-            Application app = new RoomWindow();;
+            Application app = new RoomCreationWindow();;
             Stage newStage = new Stage();
             try {
                 app.start(newStage);

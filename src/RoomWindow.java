@@ -24,10 +24,16 @@ import javax.swing.JOptionPane;
 
 public class RoomWindow extends Application {
     private Canvas canvas;
-    Environment room;
-
+    private Environment room;
+    private char[][] map;
+    public void setMap(char[][] map) {
+        this.map = map;
+    }
     @Override
     public void start(Stage primaryStage) {
+        if (map == null) {
+            return;
+        }
         canvas = new Canvas(600, 600);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.LIGHTGRAY);
@@ -36,11 +42,11 @@ public class RoomWindow extends Application {
 
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(200, 50);
-        btnCreateRobot.setOnAction(e -> openRobotDialog());
+        // Add action for creating robot
 
         Button btnCreateObstacle = new Button("Create Obstacle");
         btnCreateObstacle.setPrefSize(200, 50);
-        btnCreateObstacle.setOnAction(e -> openObstacleDialog());
+        // Add action for creating obstacle
 
         Button btnClear = new Button("Clear");
         btnClear.setPrefSize(200, 50); // Установка предпочтительного размера
