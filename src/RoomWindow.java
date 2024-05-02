@@ -28,6 +28,10 @@ import javafx.util.Duration;
 
 public class RoomWindow extends Application {
     private Canvas canvas;
+    private int CELL_SIZE = 60;
+    private int OBSTACLE_SIZE = 10;
+    private int ROBOT_SIZE = 20;
+
     Environment room;
     GraphicsContext gc;
     private char[][] map;
@@ -43,8 +47,7 @@ public class RoomWindow extends Application {
         gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        room = Room.create(600, 600);
-
+        createRoomFromMap(map);
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(200, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
@@ -72,6 +75,40 @@ public class RoomWindow extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         primaryStage.show();
+    }
+    private void createRoomFromMap(char[][] map) {
+        int roomWidth = map[0].length * CELL_SIZE; // Adjust CELL_SIZE according to your needs
+        int roomHeight = map.length * CELL_SIZE; // Adjust CELL_SIZE according to your needs
+        room = Room.create(roomWidth, roomHeight);
+
+        // Iterate over the map and add objects accordingly
+        for (int row = 0; row < map.length; row++) {
+            for (int col = 0; col < map[row].length; col++) {
+                char symbol = map[row][col];
+                int x = col * CELL_SIZE + CELL_SIZE / 2; // Adjust according to your needs
+                int y = row * CELL_SIZE + CELL_SIZE / 2; // Adjust according to your needs
+
+                switch (symbol) {
+                    case 'X': // Add obstacle
+                        createObstacle(60,x, y);
+                        break;
+                    case 'R': // Add robot
+                        Position pos = new Position(x, y);
+                        ControlledRobot robot = ControlledRobot.create(room, pos, ROBOT_SIZE); // Adjust ROBOT_SIZE according to your needs
+                        // You may also need to set additional properties of the robot
+                        if(robot == null)
+                        {
+                            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                        else
+                        {
+                            drawRobot(pos.getWidth(), pos.getHeight());
+                        }
+                        break;
+                    // Add cases for other symbols as needed
+                }
+            }
+        }
     }
 
     private void clearCanvas(GraphicsContext gc) {
@@ -123,16 +160,7 @@ public class RoomWindow extends Application {
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            int size = spinnerSize.getValue();
-            if(!room.createObstacleAt(spinnerX.getValue() - size/2, spinnerY.getValue()- size/2, size))
-            {
-                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
-
-            }
-            else
-            {
-                drawObstacle(spinnerX.getValue(), spinnerY.getValue(), spinnerSize.getValue());
-            }
+            createObstacle(spinnerSize.getValue(),spinnerX.getValue(),spinnerY.getValue());
             dialog.close();
         });
 
@@ -146,7 +174,13 @@ public class RoomWindow extends Application {
         dialog.setScene(dialogScene);
         dialog.show();
     }
-
+    private void createObstacle(int size,int valueX,int valueY) {
+        if (!room.createObstacleAt(valueX - size / 2, valueY - size / 2, size)) {
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            drawObstacle(valueX, valueY, size);
+        }
+    }
     private void drawRobot(int x, int y) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.BLUE);
