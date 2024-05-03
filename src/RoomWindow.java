@@ -30,6 +30,8 @@ import javafx.util.Duration;
 import common.Obstacle;
 import java.util.Map;
 import java.util.HashMap;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
 
 public class RoomWindow extends Application {
     private Canvas canvas;
@@ -37,6 +39,8 @@ public class RoomWindow extends Application {
     private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
+    private boolean keyboardControlActive = false;
+    private ControlledRobot activeRobot = null;
 
     Environment room;
     GraphicsContext gc;
@@ -106,8 +110,11 @@ public class RoomWindow extends Application {
         Button btnDelete = new Button("Delete");
         btnDelete.setPrefSize(200, 50);
         btnDelete.setOnAction(e -> handleDelete());
+        Button btnKeyboardMovement = new Button("Keyboard Movement");
+        btnKeyboardMovement.setPrefSize(200, 50);
+        btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
-        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete);
+        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete, btnKeyboardMovement);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
         VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
@@ -126,6 +133,7 @@ public class RoomWindow extends Application {
                 drawAllObjects();
             }
         });
+        scene.setOnKeyPressed(this::handleKeyPress);
         primaryStage.setTitle("Room Grid Window");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
@@ -361,6 +369,65 @@ public class RoomWindow extends Application {
             gc.setFill(Color.LIGHTGRAY);
             gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
             drawAllObjects();
+        }
+    }
+    private void toggleKeyboardControl() {
+        if (selectedRobot != null) {
+            if (keyboardControlActive && activeRobot == selectedRobot) {
+                keyboardControlActive = false;
+                activeRobot = null;
+            } else {
+                if (activeRobot != null) {
+                    // Остановить текущую анимацию или действие
+                    keyboardControlActive = false;
+                    activeRobot = null;
+                }
+                keyboardControlActive = true;
+                activeRobot = selectedRobot;
+                // Остановить автоматическое движение, если оно активно
+                stopAutomaticMovement(activeRobot);
+            }
+        }
+    }
+
+    private void handleKeyPress(KeyEvent event) {
+        if (keyboardControlActive && activeRobot != null) {
+            switch (event.getCode()) {
+                case W: // Учитывайте, что 'W' относится к английской раскладке клавиатуры
+                    moveRobotForward(activeRobot);
+                    break;
+                case PAGE_UP: // PAGE_UP для клавиши Page Up
+                    moveRobotForward(activeRobot);
+                    break;
+                case F: // 'F' вместо пробела для поворота
+                    activeRobot.turn(activeRobot.getTurnAngle());
+                    drawAllObjects();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    private void stopAutomaticMovement(ControlledRobot robot) {
+        Timeline timeline = robotTimelines.get(robot);
+        if (timeline != null && timeline.getStatus() == Animation.Status.RUNNING) {
+            timeline.stop();
+        }
+    }
+
+    private void moveRobotForward(ControlledRobot robot) {
+        double oldX = robot.getPosition().getWidth() ;
+        double oldY = robot.getPosition().getHeight() ;
+        double angleInRadians = Math.toRadians(robot.angle());
+        int speed = robot.getSpeed();
+        double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
+        double newY = (oldY + Math.sin(angleInRadians) * speed * 0.1);
+        Position newPosition = new Position(newX , newY);
+        Position PosCheck = new Position(newX - robot.getDetectionRange(), newY - robot.getDetectionRange());
+        if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
+            clearRobotAt(gc, oldX, oldY, robot.getSize());
+            robot.setPosition(newPosition);
+            drawRobot(newX, newY, robot);
         }
     }
     public static void main(String[] args) {
