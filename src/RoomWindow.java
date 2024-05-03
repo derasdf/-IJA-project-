@@ -49,7 +49,7 @@ public class RoomWindow extends Application {
     @Override
     public void start(Stage primaryStage) {
         if (map == null) {
-            return;
+           return;
         }
         canvas = new Canvas(600, 600);
         gc = canvas.getGraphicsContext2D();
@@ -142,11 +142,12 @@ public class RoomWindow extends Application {
 
                 switch (symbol) {
                     case 'X': // Add obstacle
-                        createObstacle(60,x, y);
+                        Obstacle newObstacle = Obstacle.create(room, new Position(x, y), 60); // Adjust OBSTACLE_SIZE according to your needs
+                        room.createObstacleAt(newObstacle);
                         break;
                     case 'R': // Add robot
                         Position pos = new Position(x, y);
-                        ControlledRobot robot = ControlledRobot.create(room, pos, ROBOT_SIZE); // Adjust ROBOT_SIZE according to your needs
+                        ControlledRobot robot = ControlledRobot.create(room, pos, ROBOT_SIZE, 0 , 0); // Adjust ROBOT_SIZE according to your needs
                         // You may also need to set additional properties of the robot
                         if(robot == null)
                         {
@@ -154,7 +155,7 @@ public class RoomWindow extends Application {
                         }
                         else
                         {
-                            drawRobot(pos.getWidth(), pos.getHeight());
+                            drawRobot(pos.getWidth(), pos.getHeight(), robot);
                         }
                         break;
                     // Add cases for other symbols as needed
