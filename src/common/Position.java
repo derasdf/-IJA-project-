@@ -5,19 +5,19 @@
 package common;
 import java.util.Objects;
 public class Position {
-    private int width;
-    private int height;
+    private double width;
+    private double height;
 
-    public Position(int width, int height) {
+    public Position(double width, double height) {
         this.width = width;
         this.height = height;
     }
 
-    public int getWidth() {
+    public double getWidth() {
         return width;
     }
 
-    public int getHeight() {
+    public double getHeight() {
         return height;
     }
 

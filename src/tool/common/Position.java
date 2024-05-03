@@ -5,19 +5,19 @@
  */ 
 package tool.common;
 public class Position extends Object {
-    private int width;
-    private int height;
+    private double width;
+    private double height;
 
-    public Position(int width, int height) {
+    public Position(double width, double height) {
         this.width = width;
         this.height = height;
     }
 
-    public int getWidth() {
+    public double getWidth() {
         return width;
     }
 
-    public int getHeight() {
+    public double getHeight() {
         return height;
     }
 
@@ -29,13 +29,7 @@ public class Position extends Object {
         return width == position.width && height == position.height;
     }
 
-    @Override
-    public int hashCode() {
-        int result = 17;
-        result = 31 * result + width;
-        result = 31 * result + height;
-        return result;
-    }
+
 
     @Override
     public String toString() {

@@ -13,6 +13,17 @@ public class Obstacle {
         this.position = pos;
         this.size = size;
     }
+    public static Obstacle create(Environment env, Position pos, int size) {
+        System.out.println("Obstacle.create " + env.containsPosition(pos, size) + " " + env.obstacleAt(pos, size, null) + " " + env.robotAt(pos, size, null));
+        if (!env.containsPosition(pos, size) || env.obstacleAt(pos, size, null) || env.robotAt(pos, size, null)) {
+            return null;
+        }
+        Obstacle obstacle = new Obstacle(env, pos, size);
+        if (!env.createObstacleAt(obstacle)) {
+            return null;
+        }
+        return obstacle;
+    }
 
     public Position getPosition() {
         return position;

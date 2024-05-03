@@ -16,20 +16,20 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     private int size;
     private int speed;
     private int turnAngle;
-    private ControlledRobot(Environment environment, Position position, int size) {
+    private ControlledRobot(Environment environment, Position position, int size, int speed, int turnAngle) {
         this.environment = environment;
         this.position = position;
         this.size = size;
-        this.angle = 50;
-        this.speed = 20;
-        this.turnAngle = 60;
+        this.angle = 0;
+        this.speed = speed;
+        this.turnAngle = turnAngle;
     }
 
-    public static ControlledRobot create(Environment environment, Position position, int size) {
-        if (!environment.containsPosition(position, size) || environment.obstacleAt(position, size) || environment.robotAt(position, size)) {
+    public static ControlledRobot create(Environment environment, Position position, int size, int speed, int turnAngle) {
+        if (!environment.containsPosition(position, size) || environment.obstacleAt(position, size, null) || environment.robotAt(position, size, null)) {
             return null;
         }
-        ControlledRobot robot = new ControlledRobot(environment, position, size);
+        ControlledRobot robot = new ControlledRobot(environment, position, size, speed, turnAngle);
         if (!environment.addRobot(robot)) {
             return null;
         }

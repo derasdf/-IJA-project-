@@ -1,9 +1,11 @@
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -24,6 +26,7 @@ import javax.swing.JOptionPane;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
+import common.Obstacle;
 
 
 public class RoomWindow extends Application {
@@ -34,6 +37,11 @@ public class RoomWindow extends Application {
 
     Environment room;
     GraphicsContext gc;
+    ListView<ControlledRobot> robotList;
+    ListView<Obstacle> obstacleList;
+    ControlledRobot selectedRobot;
+    Obstacle selectedObstacle;
+
     private char[][] map;
     public void setMap(char[][] map) {
         this.map = map;
@@ -48,6 +56,31 @@ public class RoomWindow extends Application {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         createRoomFromMap(map);
+        room = Room.create(600, 600);
+
+        robotList = new ListView<>();
+        obstacleList = new ListView<>();
+        robotList.setItems(FXCollections.observableArrayList(room.robots()));
+        obstacleList.setItems(FXCollections.observableArrayList(room.myObstacleslist()));
+
+        robotList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                obstacleList.getSelectionModel().clearSelection();
+                selectedObstacle = null;
+                selectedRobot = newVal;
+                highlightObjectOnCanvas(newVal.getPosition(), true);
+            }
+        });
+
+        obstacleList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                robotList.getSelectionModel().clearSelection();
+                selectedRobot = null;
+                selectedObstacle = newVal;
+                highlightObjectOnCanvas(newVal.getPosition(), false);
+            }
+        });
+
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(200, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
@@ -57,20 +90,39 @@ public class RoomWindow extends Application {
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
 
         Button btnClear = new Button("Clear");
-        btnClear.setPrefSize(200, 50); // Установка предпочтительного размера
-        btnClear.setOnAction(e -> clearCanvas(gc)); // Действие на очистку холста
+        btnClear.setPrefSize(200, 50);
+        btnClear.setOnAction(e -> clearCanvas(gc));
 
         Button btnStartAut = new Button("Start automatic");
-        btnStartAut.setPrefSize(200, 50); // Установка предпочтительного размера
-        btnStartAut.setOnAction(e -> startAutomatic(gc)); // Действие на очистку холста
+        btnStartAut.setPrefSize(200, 50);
+        btnStartAut.setOnAction(e -> startAutomatic(gc));
 
-        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut);
+        Button btnChange = new Button("Change");
+        btnChange.setPrefSize(200, 50);
+        btnChange.setOnAction(e -> handleChange());
+        Button btnDelete = new Button("Delete");
+        btnDelete.setPrefSize(200, 50);
+        btnDelete.setOnAction(e -> handleDelete());
+
+        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete);
         hboxButtons.setAlignment(Pos.CENTER);
-        VBox vbox = new VBox(10, hboxButtons, canvas);
+        VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
+        VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
+        VBox vbox = new VBox(10, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ) );
         vbox.setAlignment(Pos.CENTER);
 
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
         Scene scene = new Scene(vbox, screenBounds.getWidth(), screenBounds.getHeight());
+        scene.setOnMouseClicked(e -> {
+            if (robotList.isFocused() || obstacleList.isFocused()) {
+                System.out.println("Mouse clicked");
+                robotList.getSelectionModel().clearSelection();
+                obstacleList.getSelectionModel().clearSelection();
+                selectedRobot = null;
+                selectedObstacle = null;
+                drawAllObjects();
+            }
+        });
         primaryStage.setTitle("Room Grid Window");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
@@ -125,24 +177,25 @@ public class RoomWindow extends Application {
 
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
-
+        Spinner<Integer> spinnerSpeeed = new Spinner<>(20, 100, 0);
+        Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, 0);
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
             Position pos = new Position(spinnerX.getValue() - 15, spinnerY.getValue() - 15);
-            System.out.println("" + room.obstacleAt(pos, 30) + " " + room.robotAt(pos, 30));
-            ControlledRobot robot = ControlledRobot.create(room, pos, 30);
+            ControlledRobot robot = ControlledRobot.create(room, pos, 30, spinnerSpeeed.getValue(), spinnerTurnAngle.getValue());
             if(robot == null)
             {
                 JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
             }
             else
             {
-                drawRobot(pos.getWidth(), pos.getHeight());
+                robotList.getItems().add(robot);
+                drawRobot(pos.getWidth(), pos.getHeight(), robot);
             }
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(new Label("X Coordinate:"), spinnerX, new Label("Y Coordinate:"), spinnerY, btnCreate);
+        dialogVbox.getChildren().addAll(new Label("X Coordinate:"), spinnerX, new Label("Y Coordinate:"), spinnerY, new Label("Speed:"), spinnerSpeeed, new Label("Turn angle:"), spinnerTurnAngle ,  btnCreate);
 
         Scene dialogScene = new Scene(dialogVbox, 300, 200);
         dialog.setScene(dialogScene);
@@ -160,7 +213,19 @@ public class RoomWindow extends Application {
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            createObstacle(spinnerSize.getValue(),spinnerX.getValue(),spinnerY.getValue());
+            int size = spinnerSize.getValue();
+            Obstacle newObstacle = Obstacle.create(room, new Position(spinnerX.getValue() - size/2 , spinnerY.getValue()- size/2), size);
+            if(newObstacle == null)
+            {
+                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+
+            }
+            else
+            {
+                obstacleList.getItems().add(newObstacle);
+                System.out.println("Obstacle created " + room.myObstacleslist().size() );
+                drawObstacle(spinnerX.getValue() - size/2 , spinnerY.getValue()- size/2 , spinnerSize.getValue(), newObstacle);
+            }
             dialog.close();
         });
 
@@ -174,51 +239,56 @@ public class RoomWindow extends Application {
         dialog.setScene(dialogScene);
         dialog.show();
     }
-    private void createObstacle(int size,int valueX,int valueY) {
-        if (!room.createObstacleAt(valueX - size / 2, valueY - size / 2, size)) {
-            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
-        } else {
-            drawObstacle(valueX, valueY, size);
-        }
-    }
-    private void drawRobot(int x, int y) {
+
+    private void drawRobot(double x, double y, ControlledRobot robot) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.BLUE);
-        gc.fillOval(x, y , 30, 30);
+        gc.fillOval(x, y, 30, 30);
+        if (robot.equals(selectedRobot)) {
+            gc.setStroke(Color.YELLOW);
+            gc.setLineWidth(2);
+            gc.strokeOval(x, y, 30, 30);
+        }
     }
 
-    private void drawObstacle(int x, int y, int size) {
+    private void drawObstacle(double x, double y, int size, Obstacle obstacle) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.RED);
-        gc.fillRect(x - size/2, y - size/2, size, size);
+        gc.fillRect(x, y, size, size);
+        if (obstacle.equals(selectedObstacle)) {
+            gc.setStroke(Color.YELLOW);
+            gc.setLineWidth(2);
+            gc.strokeRect(x, y, size, size);
+        }
     }
     private void startAutomatic(GraphicsContext gc) {
-        double timeStep = 0.1; // Время в секундах между обновлениями
+        double timeStep = 0.1;
 
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(timeStep), e -> {
             for (ControlledRobot robot : room.robots()) {
-                // Сохраняем старые координаты
-                int oldX = robot.getPosition().getWidth();
-                int oldY = robot.getPosition().getHeight();
 
-                // Рассчитываем новое положение на основе скорости и направления
+                double oldX = robot.getPosition().getWidth();
+                double oldY = robot.getPosition().getHeight();
+
+
                 double angleInRadians = Math.toRadians(robot.angle());
-                int speed = robot.getSpeed(); // предполагается, что скорость определена в robot
-                int newX = (int) (oldX + Math.cos(angleInRadians) * speed * timeStep);
-                int newY = (int) (oldY + Math.sin(angleInRadians) * speed * timeStep);
+                int speed = robot.getSpeed();
+                double newX = (oldX + Math.cos(angleInRadians) * speed * timeStep);
+                double newY = (oldY + Math.sin(angleInRadians) * speed * timeStep);
                 Position newPosition = new Position(newX, newY);
-                System.out.println("NewX = " + newX + " NewY= " + newY + " Size = " + robot.getSize() +  " Math.cos(angleInRadians) =  " + Math.cos(angleInRadians) + " Math.sin(angleInRadians) =  " + Math.sin(angleInRadians) + " speed = " + speed + " timeStep = " + timeStep);
-                // Проверка на столкновение
-                if (!room.obstacleAt(newPosition, robot.getSize()) && !room.robotAt(newPosition, robot.getSize()) && room.containsPosition(newPosition, robot.getSize())) {
-                    // Стираем робота на старой позиции
+                System.out.println("NewX = " + newX + " NewY= " + newY + " Size = " + robot.getSize() +  " Math.cos(angleInRadians) =  " + Math.cos(angleInRadians) + " Math.sin(angleInRadians) =  " + Math.sin(angleInRadians) + " speed = " + speed + " timeStep = " + timeStep + " angle = " + robot.angle());
+                System.out.println(" " + room.obstacleAt(newPosition, robot.getSize(), null) + " " + room.robotAt(newPosition, robot.getSize(), robot) + " " + room.containsPosition(newPosition, robot.getSize()));
+
+                if (!room.obstacleAt(newPosition, robot.getSize(), null) && !room.robotAt(newPosition, robot.getSize(), robot) && room.containsPosition(newPosition, robot.getSize())) {
+
                     clearRobotAt(gc, oldX, oldY, robot.getSize());
 
-                    // Обновляем позицию робота и рисуем его на новом месте
+
                     robot.setPosition(newPosition);
-                    drawRobot(newX, newY);
+                    drawRobot(newX, newY, robot);
                 } else {
-                    // Поворот на заданный угол при обнаружении препятствия
-                    robot.turn(robot.getTurnAngle()); // предполагается метод getTurnAngle
+
+                    robot.turn(robot.getTurnAngle());
                 }
             }
         }));
@@ -227,9 +297,61 @@ public class RoomWindow extends Application {
         timeline.play();
     }
 
-    private void clearRobotAt(GraphicsContext gc, int x, int y, int size) {
-        gc.setFill(Color.LIGHTGRAY); // Цвет фона
-        gc.fillRect(x , y , 30, 30);
+    private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
+        gc.setFill(Color.LIGHTGRAY);
+        gc.fillRect(x - 1 , y - 1  , 32,  32);
+
+    }
+
+    private void drawAllObjects() {
+        gc.setFill(Color.LIGHTGRAY);
+        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        System.out.println("drawAllObjects" + room.robots().size() + " " + room.myObstacleslist().size());
+        for (ControlledRobot robot : room.robots()) {
+            drawRobot(robot.getPosition().getWidth(), robot.getPosition().getHeight(), robot);
+        }
+        for (Obstacle obstacle : room.myObstacleslist()) {
+            drawObstacle(obstacle.getPosition().getWidth(), obstacle.getPosition().getHeight(), obstacle.getSize(), obstacle);
+        }
+    }
+    private void highlightObjectOnCanvas(Position pos, boolean isRobot) {
+        drawAllObjects();
+        gc.setStroke(Color.YELLOW);
+        gc.setLineWidth(2);
+        if (isRobot) {
+            gc.strokeOval(pos.getWidth(), pos.getHeight(), 30, 30); // Выделение робота
+        } else {
+            int size = selectedObstacle.getSize();
+            gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); // Выделение препятствия
+        }
+    }
+
+    private void handleChange() {
+
+        if (selectedRobot != null) {
+
+        } else if (selectedObstacle != null) {
+
+        }
+    }
+
+    private void handleDelete() {
+        if (selectedRobot != null) {
+            room.removeRobot(selectedRobot);
+            robotList.getItems().remove(selectedRobot);
+            selectedRobot = null;
+            gc.setFill(Color.LIGHTGRAY);
+            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawAllObjects();
+        }
+        else if (selectedObstacle != null) {
+            room.removeObstacle(selectedObstacle);
+            obstacleList.getItems().remove(selectedObstacle);
+            selectedObstacle = null;
+            gc.setFill(Color.LIGHTGRAY);
+            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawAllObjects();
+        }
     }
 
     public static void main(String[] args) {
