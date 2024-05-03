@@ -33,7 +33,7 @@ public class RoomWindow extends Application {
     private Canvas canvas;
     private int CELL_SIZE = 60;
     private int OBSTACLE_SIZE = 10;
-    private int ROBOT_SIZE = 20;
+    private int ROBOT_SIZE = 30;
 
     Environment room;
     GraphicsContext gc;
@@ -145,7 +145,8 @@ public class RoomWindow extends Application {
                         placeObject(x,y,60);
                         break;
                     case 'R': // Add robot
-                        placeRobot(x,y,20,0,20);
+                        System.out.println("Place robot " + x + " " + y);
+                        placeRobot(x,y,40,25,30);
                         break;
                     // Add cases for other symbols as needed
                 }
@@ -217,11 +218,15 @@ public class RoomWindow extends Application {
         else
         {
             robotList.getItems().add(robot);
+            System.out.println("Place robot " + pos.getWidth() + " " + pos.getHeight() + " " + size + " " + speed + " " + angle);
             drawRobot(pos.getWidth(), pos.getHeight(), robot);
         }
     }
     private void placeObject(double x, double y, int size) {
-        Obstacle newObstacle = Obstacle.create(room, new Position(x- size/2 , y- size/2), size);
+        Obstacle newObstacle = Obstacle.create(room, new Position(x - size/2 , y - size/2), size);
+        double b = x- size/2;
+        double c = y- size/2;
+        System.out.println("Obstacle created " + b + " " + c + " " + size);
         if(newObstacle == null)
         {
             JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
@@ -229,8 +234,7 @@ public class RoomWindow extends Application {
         else
         {
             obstacleList.getItems().add(newObstacle);
-            System.out.println("Obstacle created " + room.myObstacleslist().size() );
-            drawObstacle(x - size/2, y - size/2, size, newObstacle);
+            drawObstacle(newObstacle.getPosition().getWidth() , newObstacle.getPosition().getHeight() , size, newObstacle);
         }
     }
     private void drawRobot(double x, double y, ControlledRobot robot) {
