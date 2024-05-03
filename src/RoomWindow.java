@@ -341,7 +341,6 @@ public class RoomWindow extends Application {
             drawAllObjects();
         }
     }
-
     public static void main(String[] args) {
         launch(args);
     }
