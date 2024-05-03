@@ -55,7 +55,6 @@ public class RoomWindow extends Application {
         gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        createRoomFromMap(map);
         room = Room.create(600, 600);
 
         robotList = new ListView<>();
@@ -80,6 +79,7 @@ public class RoomWindow extends Application {
                 highlightObjectOnCanvas(newVal.getPosition(), false);
             }
         });
+        createRoomFromMap(map);
 
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(200, 50);
@@ -142,21 +142,10 @@ public class RoomWindow extends Application {
 
                 switch (symbol) {
                     case 'X': // Add obstacle
-                        Obstacle newObstacle = Obstacle.create(room, new Position(x, y), 60); // Adjust OBSTACLE_SIZE according to your needs
-                        room.createObstacleAt(newObstacle);
+                        placeObject(x,y,60);
                         break;
                     case 'R': // Add robot
-                        Position pos = new Position(x, y);
-                        ControlledRobot robot = ControlledRobot.create(room, pos, ROBOT_SIZE, 0 , 0); // Adjust ROBOT_SIZE according to your needs
-                        // You may also need to set additional properties of the robot
-                        if(robot == null)
-                        {
-                            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                        else
-                        {
-                            drawRobot(pos.getWidth(), pos.getHeight(), robot);
-                        }
+                        placeRobot(x,y,20,0,20);
                         break;
                     // Add cases for other symbols as needed
                 }
@@ -182,17 +171,7 @@ public class RoomWindow extends Application {
         Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, 0);
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            Position pos = new Position(spinnerX.getValue() - 15, spinnerY.getValue() - 15);
-            ControlledRobot robot = ControlledRobot.create(room, pos, 30, spinnerSpeeed.getValue(), spinnerTurnAngle.getValue());
-            if(robot == null)
-            {
-                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            else
-            {
-                robotList.getItems().add(robot);
-                drawRobot(pos.getWidth(), pos.getHeight(), robot);
-            }
+            placeRobot(spinnerX.getValue(),spinnerY.getValue() , spinnerSpeeed.getValue(),spinnerTurnAngle.getValue(),30);
             dialog.close();
         });
 
@@ -214,19 +193,7 @@ public class RoomWindow extends Application {
 
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            int size = spinnerSize.getValue();
-            Obstacle newObstacle = Obstacle.create(room, new Position(spinnerX.getValue() - size/2 , spinnerY.getValue()- size/2), size);
-            if(newObstacle == null)
-            {
-                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
-
-            }
-            else
-            {
-                obstacleList.getItems().add(newObstacle);
-                System.out.println("Obstacle created " + room.myObstacleslist().size() );
-                drawObstacle(spinnerX.getValue() - size/2 , spinnerY.getValue()- size/2 , spinnerSize.getValue(), newObstacle);
-            }
+            placeObject(spinnerX.getValue(),spinnerY.getValue(),spinnerSize.getValue());
             dialog.close();
         });
 
@@ -240,7 +207,32 @@ public class RoomWindow extends Application {
         dialog.setScene(dialogScene);
         dialog.show();
     }
-
+    private void placeRobot(double x, double y,int speed,int angle, int size) {
+        Position pos = new Position(x - 15, y - 15);
+        ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle);
+        if(robot == null)
+        {
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        else
+        {
+            robotList.getItems().add(robot);
+            drawRobot(pos.getWidth(), pos.getHeight(), robot);
+        }
+    }
+    private void placeObject(double x, double y, int size) {
+        Obstacle newObstacle = Obstacle.create(room, new Position(x- size/2 , y- size/2), size);
+        if(newObstacle == null)
+        {
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        else
+        {
+            obstacleList.getItems().add(newObstacle);
+            System.out.println("Obstacle created " + room.myObstacleslist().size() );
+            drawObstacle(x - size/2, y - size/2, size, newObstacle);
+        }
+    }
     private void drawRobot(double x, double y, ControlledRobot robot) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.BLUE);
@@ -270,8 +262,6 @@ public class RoomWindow extends Application {
 
                 double oldX = robot.getPosition().getWidth();
                 double oldY = robot.getPosition().getHeight();
-
-
                 double angleInRadians = Math.toRadians(robot.angle());
                 int speed = robot.getSpeed();
                 double newX = (oldX + Math.cos(angleInRadians) * speed * timeStep);
@@ -281,10 +271,7 @@ public class RoomWindow extends Application {
                 System.out.println(" " + room.obstacleAt(newPosition, robot.getSize(), null) + " " + room.robotAt(newPosition, robot.getSize(), robot) + " " + room.containsPosition(newPosition, robot.getSize()));
 
                 if (!room.obstacleAt(newPosition, robot.getSize(), null) && !room.robotAt(newPosition, robot.getSize(), robot) && room.containsPosition(newPosition, robot.getSize())) {
-
                     clearRobotAt(gc, oldX, oldY, robot.getSize());
-
-
                     robot.setPosition(newPosition);
                     drawRobot(newX, newY, robot);
                 } else {
@@ -301,7 +288,6 @@ public class RoomWindow extends Application {
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(x - 1 , y - 1  , 32,  32);
-
     }
 
     private void drawAllObjects() {
@@ -328,11 +314,8 @@ public class RoomWindow extends Application {
     }
 
     private void handleChange() {
-
         if (selectedRobot != null) {
-
         } else if (selectedObstacle != null) {
-
         }
     }
 
