@@ -1,3 +1,4 @@
+import javafx.animation.Animation;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -27,13 +28,15 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 import common.Obstacle;
-
+import java.util.Map;
+import java.util.HashMap;
 
 public class RoomWindow extends Application {
     private Canvas canvas;
     private int CELL_SIZE = 60;
     private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
+    private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
 
     Environment room;
     GraphicsContext gc;
@@ -259,34 +262,43 @@ public class RoomWindow extends Application {
         }
     }
     private void startAutomatic(GraphicsContext gc) {
-        double timeStep = 0.1;
-
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(timeStep), e -> {
-            for (ControlledRobot robot : room.robots()) {
-
-                double oldX = robot.getPosition().getWidth();
-                double oldY = robot.getPosition().getHeight();
-                double angleInRadians = Math.toRadians(robot.angle());
-                int speed = robot.getSpeed();
-                double newX = (oldX + Math.cos(angleInRadians) * speed * timeStep);
-                double newY = (oldY + Math.sin(angleInRadians) * speed * timeStep);
-                Position newPosition = new Position(newX, newY);
-                System.out.println("NewX = " + newX + " NewY= " + newY + " Size = " + robot.getSize() +  " Math.cos(angleInRadians) =  " + Math.cos(angleInRadians) + " Math.sin(angleInRadians) =  " + Math.sin(angleInRadians) + " speed = " + speed + " timeStep = " + timeStep + " angle = " + robot.angle());
-                System.out.println(" " + room.obstacleAt(newPosition, robot.getSize(), null) + " " + room.robotAt(newPosition, robot.getSize(), robot) + " " + room.containsPosition(newPosition, robot.getSize()));
-
-                if (!room.obstacleAt(newPosition, robot.getSize(), null) && !room.robotAt(newPosition, robot.getSize(), robot) && room.containsPosition(newPosition, robot.getSize())) {
-                    clearRobotAt(gc, oldX, oldY, robot.getSize());
-                    robot.setPosition(newPosition);
-                    drawRobot(newX, newY, robot);
-                } else {
-
-                    robot.turn(robot.getTurnAngle());
-                }
+        if (selectedRobot == null) {
+            return; // Если робот не выбран, ничего не делаем
+        }
+        ControlledRobot robot = selectedRobot;
+        Timeline timeline = robotTimelines.get(selectedRobot);
+        System.out.println("startAutomatic " + timeline);
+        if (timeline == null) {
+            // Создаем новый таймлайн, если для выбранного робота его нет
+            timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> moveRobot(robot)));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            robotTimelines.put(selectedRobot, timeline);
+            timeline.play();
+        } else {
+            // Если таймлайн уже существует, останавливаем или запускаем его в зависимости от состояния
+            if (timeline.getStatus() == Animation.Status.RUNNING) {
+                timeline.stop();
+            } else {
+                timeline.play();
             }
-        }));
+        }
+    }
 
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+    private void moveRobot(ControlledRobot robot) {
+        double oldX = robot.getPosition().getWidth();
+        double oldY = robot.getPosition().getHeight();
+        double angleInRadians = Math.toRadians(robot.angle());
+        int speed = robot.getSpeed();
+        double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
+        double newY = (oldY + Math.sin(angleInRadians) * speed * 0.1);
+        Position newPosition = new Position(newX, newY);
+        if (!room.obstacleAt(newPosition, robot.getSize(), null) && !room.robotAt(newPosition, robot.getSize(), robot) && room.containsPosition(newPosition, robot.getSize())) {
+            clearRobotAt(gc, oldX, oldY, robot.getSize());
+            robot.setPosition(newPosition);
+            drawRobot(newX, newY, robot);
+        } else {
+            robot.turn(robot.getTurnAngle());
+        }
     }
 
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
