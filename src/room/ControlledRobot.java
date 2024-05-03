@@ -16,24 +16,28 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     private int size;
     private int speed;
     private int turnAngle;
-    private ControlledRobot(Environment environment, Position position, int size, int speed, int turnAngle) {
+
+    private int detectionRange;
+    private ControlledRobot(Environment environment, Position position, int size, int speed, int turnAngle, int detectionRange) {
         this.environment = environment;
         this.position = position;
         this.size = size;
         this.angle = 0;
         this.speed = speed;
         this.turnAngle = turnAngle;
+        this.detectionRange = detectionRange; // Инициализируйте новое поле
     }
 
-    public static ControlledRobot create(Environment environment, Position position, int size, int speed, int turnAngle) {
-        if (!environment.containsPosition(position, size) || environment.obstacleAt(position, size, null) || environment.robotAt(position, size, null)) {
+
+    public static ControlledRobot create(Environment environment, Position position, int size, int speed, int turnAngle, int detectionRange) {
+        Position posCheck = new Position(position.getWidth() - detectionRange, position.getWidth() - detectionRange);
+        if (!environment.containsPosition(posCheck, size + 2*detectionRange) || environment.obstacleAt(posCheck, size + 2*detectionRange, null) || environment.robotAt(posCheck, size + 2*detectionRange, null)) {
             return null;
         }
-        ControlledRobot robot = new ControlledRobot(environment, position, size, speed, turnAngle);
+        ControlledRobot robot = new ControlledRobot(environment, position, size, speed, turnAngle, detectionRange);
         if (!environment.addRobot(robot)) {
             return null;
         }
-
         return robot;
     }
 
@@ -152,5 +156,12 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
 
     public void setTurnAngle(int turnAngle) {
         this.turnAngle = turnAngle;
+    }
+    public int getDetectionRange() {
+        return detectionRange;
+    }
+
+    public void setDetectionRange(int detectionRange) {
+        this.detectionRange = detectionRange;
     }
 }

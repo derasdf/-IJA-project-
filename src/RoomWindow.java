@@ -149,7 +149,7 @@ public class RoomWindow extends Application {
                         break;
                     case 'R': // Add robot
                         System.out.println("Place robot " + x + " " + y);
-                        placeRobot(x,y,40,25,30);
+                        placeRobot(x,y,40,25,30, 10);
                         break;
                     // Add cases for other symbols as needed
                 }
@@ -171,17 +171,26 @@ public class RoomWindow extends Application {
 
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
-        Spinner<Integer> spinnerSpeeed = new Spinner<>(20, 100, 0);
-        Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, 0);
+        Spinner<Integer> spinnerSpeed = new Spinner<>(20, 100, 50);
+        Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, 45);
+        Spinner<Integer> spinnerDetectionRange = new Spinner<>(1, 100, 10);  // Новый спиннер для дистанции обнаружения
+
         Button btnCreate = new Button("Create");
         btnCreate.setOnAction(e -> {
-            placeRobot(spinnerX.getValue(),spinnerY.getValue() , spinnerSpeeed.getValue(),spinnerTurnAngle.getValue(),30);
+            placeRobot(spinnerX.getValue(), spinnerY.getValue(), spinnerSpeed.getValue(), spinnerTurnAngle.getValue(), 30, spinnerDetectionRange.getValue());
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(new Label("X Coordinate:"), spinnerX, new Label("Y Coordinate:"), spinnerY, new Label("Speed:"), spinnerSpeeed, new Label("Turn angle:"), spinnerTurnAngle ,  btnCreate);
+        dialogVbox.getChildren().addAll(
+                new Label("X Coordinate:"), spinnerX,
+                new Label("Y Coordinate:"), spinnerY,
+                new Label("Speed:"), spinnerSpeed,
+                new Label("Turn angle:"), spinnerTurnAngle,
+                new Label("Detection Range:"), spinnerDetectionRange,  // Добавляем на форму
+                btnCreate
+        );
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 200);
+        Scene dialogScene = new Scene(dialogVbox, 300, 300);
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -211,9 +220,9 @@ public class RoomWindow extends Application {
         dialog.setScene(dialogScene);
         dialog.show();
     }
-    private void placeRobot(double x, double y,int speed,int angle, int size) {
+    private void placeRobot(double x, double y,int speed,int angle, int size, int detectionRange) {
         Position pos = new Position(x - 15, y - 15);
-        ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle);
+        ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle, detectionRange);
         if(robot == null)
         {
             JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
@@ -285,14 +294,15 @@ public class RoomWindow extends Application {
     }
 
     private void moveRobot(ControlledRobot robot) {
-        double oldX = robot.getPosition().getWidth();
-        double oldY = robot.getPosition().getHeight();
+        double oldX = robot.getPosition().getWidth() ;
+        double oldY = robot.getPosition().getHeight() ;
         double angleInRadians = Math.toRadians(robot.angle());
         int speed = robot.getSpeed();
         double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
         double newY = (oldY + Math.sin(angleInRadians) * speed * 0.1);
-        Position newPosition = new Position(newX, newY);
-        if (!room.obstacleAt(newPosition, robot.getSize(), null) && !room.robotAt(newPosition, robot.getSize(), robot) && room.containsPosition(newPosition, robot.getSize())) {
+        Position newPosition = new Position(newX , newY);
+        Position PosCheck = new Position(newX - robot.getDetectionRange(), newY - robot.getDetectionRange());
+        if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
             clearRobotAt(gc, oldX, oldY, robot.getSize());
             robot.setPosition(newPosition);
             drawRobot(newX, newY, robot);
