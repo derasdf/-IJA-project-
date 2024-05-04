@@ -35,8 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RoomWindow extends Application {
     private Canvas canvas;
-    private int CELL_SIZE = 60;
-    private int OBSTACLE_SIZE = 1;
+    private int CELL_SIZE = 600;
+    private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
@@ -161,24 +161,21 @@ public class RoomWindow extends Application {
         primaryStage.show();
     }
     private void createRoomFromMap(char[][] map) {
-        int roomWidth = map[0].length * CELL_SIZE; // Adjust CELL_SIZE according to your needs
-        int roomHeight = map.length * CELL_SIZE; // Adjust CELL_SIZE according to your needs
-        room = Room.create(roomWidth, roomHeight);
-
+        room = Room.create(CELL_SIZE, CELL_SIZE);
         // Iterate over the map and add objects accordingly
         for (int row = 0; row < map.length; row++) {
             for (int col = 0; col < map[row].length; col++) {
                 char symbol = map[row][col];
-                int x = col * CELL_SIZE + CELL_SIZE / 2; // Adjust according to your needs
-                int y = row * CELL_SIZE + CELL_SIZE / 2; // Adjust according to your needs
+                int x = col * CELL_SIZE /map.length  + CELL_SIZE / (2 * map.length); // Adjust according to your needs
+                int y = row * CELL_SIZE / map[row].length + CELL_SIZE / (2 * map[row].length); // Adjust according to your needs
 
                 switch (symbol) {
                     case 'X': // Add obstacle
-                        placeObject(x,y,OBSTACLE_SIZE*CELL_SIZE);
+                        placeObject(x,y,CELL_SIZE /map.length);
                         break;
                     case 'R': // Add robot
                         System.out.println("Place robot " + x + " " + y);
-                        placeRobot(x,y,40,25,ROBOT_SIZE, 10);
+                        placeRobot(x,y,40,25,CELL_SIZE /map.length, 10);
                         break;
                     // Add cases for other symbols as needed
                 }
@@ -301,7 +298,7 @@ public class RoomWindow extends Application {
         dialog.show();
     }
     private void placeRobot(double x, double y,int speed,int angle, int size, int detectionRange) {
-        Position pos = new Position(x - 15, y - 15);
+        Position pos = new Position(x - size/2 , y - size/2);
         ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle, detectionRange);
         if(robot == null)
         {
@@ -311,7 +308,7 @@ public class RoomWindow extends Application {
         {
             robotList.getItems().add(robot);
             System.out.println("Place robot " + pos.getWidth() + " " + pos.getHeight() + " " + size + " " + speed + " " + angle);
-            drawRobot(pos.getWidth(), pos.getHeight(), robot);
+            drawRobot(pos.getWidth(), pos.getHeight(), robot,size);
         }
     }
     private void placeObject(double x, double y, int size) {
@@ -329,14 +326,14 @@ public class RoomWindow extends Application {
             drawObstacle(newObstacle.getPosition().getWidth() , newObstacle.getPosition().getHeight() , size, newObstacle);
         }
     }
-    private void drawRobot(double x, double y, ControlledRobot robot) {
+    private void drawRobot(double x, double y, ControlledRobot robot,int size ) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.BLUE);
-        gc.fillOval(x, y, 30, 30);
+        gc.fillOval(x, y, size, size);
         if (robot.equals(selectedRobot)) {
             gc.setStroke(Color.YELLOW);
             gc.setLineWidth(2);
-            gc.strokeOval(x, y, 30, 30);
+            gc.strokeOval(x, y, size, size);
         }
     }
 
@@ -383,7 +380,7 @@ public class RoomWindow extends Application {
         if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
             clearRobotAt(gc, oldX, oldY, robot.getSize());
             robot.setPosition(newPosition);
-            drawRobot(newX, newY, robot);
+            drawRobot(newX, newY, robot,robot.getSize());
         } else {
             robot.turn(robot.getTurnAngle());
         }
@@ -399,7 +396,7 @@ public class RoomWindow extends Application {
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         System.out.println("drawAllObjects" + room.robots().size() + " " + room.myObstacleslist().size());
         for (ControlledRobot robot : room.robots()) {
-            drawRobot(robot.getPosition().getWidth(), robot.getPosition().getHeight(), robot);
+            drawRobot(robot.getPosition().getWidth(), robot.getPosition().getHeight(), robot,robot.getSize());
         }
         for (Obstacle obstacle : room.myObstacleslist()) {
             drawObstacle(obstacle.getPosition().getWidth(), obstacle.getPosition().getHeight(), obstacle.getSize(), obstacle);
@@ -495,7 +492,7 @@ public class RoomWindow extends Application {
         if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
             clearRobotAt(gc, oldX, oldY, robot.getSize());
             robot.setPosition(newPosition);
-            drawRobot(newX, newY, robot);
+            drawRobot(newX, newY, robot,robot.getSize());
         }
     }
 
@@ -543,7 +540,7 @@ public class RoomWindow extends Application {
                 if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
                     clearRobotAt(gc, currentX, currentY, robot.getSize());
                     robot.setPosition(newPosition);
-                    drawRobot(newX, newY, robot);
+                    drawRobot(newX, newY, robot,robot.getSize());
                 }
             }
         }));
