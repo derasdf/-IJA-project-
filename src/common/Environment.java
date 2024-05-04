@@ -23,6 +23,7 @@ public interface Environment extends ToolEnvironment {
     void clearObstacles();
     void clearRobots();
     void clearCollectables();
+    Collectable getCollectableAt(Position p);
     void removeRobot(ControlledRobot robot);
     void removeObstacle(Obstacle obstacle);
     void removeCollectable(Collectable collectable);

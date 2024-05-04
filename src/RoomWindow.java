@@ -38,6 +38,7 @@ public class RoomWindow extends Application {
     private int CELL_SIZE = 600;
     private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
+    private int collected = 0;
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
@@ -49,6 +50,8 @@ public class RoomWindow extends Application {
     ListView<Collectable> collectableList;
     ControlledRobot selectedRobot;
     Obstacle selectedObstacle;
+    Collectable selectedCollectable;
+
 
     private char[][] map;
     public void setMap(char[][] map) {
@@ -95,7 +98,9 @@ public class RoomWindow extends Application {
         robotList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 obstacleList.getSelectionModel().clearSelection();
+                collectableList.getSelectionModel().clearSelection();
                 selectedObstacle = null;
+                selectedCollectable = null;
                 selectedRobot = newVal;
                 highlightObjectOnCanvas(newVal.getPosition(), true);
             }
@@ -104,8 +109,21 @@ public class RoomWindow extends Application {
         obstacleList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 robotList.getSelectionModel().clearSelection();
+                collectableList.getSelectionModel().clearSelection();
                 selectedRobot = null;
+                selectedCollectable = null;
                 selectedObstacle = newVal;
+                highlightObjectOnCanvas(newVal.getPosition(), false);
+            }
+        });
+
+        collectableList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                robotList.getSelectionModel().clearSelection();
+                obstacleList.getSelectionModel().clearSelection();
+                selectedRobot = null;
+                selectedObstacle = null;
+                selectedCollectable = newVal;
                 highlightObjectOnCanvas(newVal.getPosition(), false);
             }
         });
@@ -140,7 +158,9 @@ public class RoomWindow extends Application {
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
         VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
-        VBox vbox = new VBox(10, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ) );
+        VBox rightPanel2 = new VBox(10, new Label("Collectables"), collectableList);
+
+        VBox vbox = new VBox(10, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ,rightPanel2) );
         vbox.setAlignment(Pos.CENTER);
 
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
@@ -150,8 +170,10 @@ public class RoomWindow extends Application {
                 System.out.println("Mouse clicked");
                 robotList.getSelectionModel().clearSelection();
                 obstacleList.getSelectionModel().clearSelection();
+                collectableList.getSelectionModel().clearSelection();
                 selectedRobot = null;
                 selectedObstacle = null;
+                selectedCollectable = null;
                 drawAllObjects();
             }
         });
@@ -179,7 +201,9 @@ public class RoomWindow extends Application {
                         System.out.println("Place robot " + x + " " + y);
                         placeRobot(x,y,40,25,CELL_SIZE /map.length, 10);
                         break;
-                    // Add cases for other symbols as needed
+                    case 'C': // Add robot
+                        placeCollectable(x,y,CELL_SIZE /map.length);
+                        break;
                 }
             }
         }
@@ -329,6 +353,20 @@ public class RoomWindow extends Application {
             drawObstacle(newObstacle.getPosition().getWidth() , newObstacle.getPosition().getHeight() , size, newObstacle);
         }
     }
+    private void placeCollectable(double x, double y, int size) {
+        Collectable newCollectable = Collectable.create(room, new Position(x - size/2 , y - size/2), size);
+        double b = x- size/2;
+        double c = y- size/2;
+        if(newCollectable == null)
+        {
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        else
+        {
+            collectableList.getItems().add(newCollectable);
+            drawCollectable(newCollectable.getPosition().getWidth() , newCollectable.getPosition().getHeight() , size, newCollectable);
+        }
+    }
     private void drawRobot(double x, double y, ControlledRobot robot,int size ) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Image robotImage = new Image("/images/pyl.png");
@@ -345,6 +383,16 @@ public class RoomWindow extends Application {
         gc.setFill(Color.RED);
         gc.fillRect(x, y, size, size);
         if (obstacle.equals(selectedObstacle)) {
+            gc.setStroke(Color.YELLOW);
+            gc.setLineWidth(2);
+            gc.strokeRect(x, y, size, size);
+        }
+    }
+    private void drawCollectable(double x, double y, int size, Collectable collectable) {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(Color.GREEN);
+        gc.fillRect(x, y, size, size);
+        if (collectable.equals(selectedCollectable)) {
             gc.setStroke(Color.YELLOW);
             gc.setLineWidth(2);
             gc.strokeRect(x, y, size, size);
@@ -403,6 +451,9 @@ public class RoomWindow extends Application {
         }
         for (Obstacle obstacle : room.myObstacleslist()) {
             drawObstacle(obstacle.getPosition().getWidth(), obstacle.getPosition().getHeight(), obstacle.getSize(), obstacle);
+        }
+        for (Collectable collectable : room.myCollectableslist()) {
+            drawCollectable(collectable.getPosition().getWidth(), collectable.getPosition().getHeight(), collectable.getSize(), collectable);
         }
     }
     private void highlightObjectOnCanvas(Position pos, boolean isRobot) {
@@ -558,6 +609,7 @@ public class RoomWindow extends Application {
     private void moveRobotForward(ControlledRobot robot) {
         double oldX = robot.getPosition().getWidth() ;
         double oldY = robot.getPosition().getHeight() ;
+        Position oldPos =  new Position(oldX , oldY);
         double angleInRadians = Math.toRadians(robot.angle());
         int speed = robot.getSpeed();
         double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
@@ -568,6 +620,12 @@ public class RoomWindow extends Application {
             clearRobotAt(gc, oldX, oldY, robot.getSize());
             robot.setPosition(newPosition);
             drawRobot(newX, newY, robot,robot.getSize());
+        }
+        if (!room.collectableAt(oldPos, robot.getSize(), null)&& room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
+            collected++;
+            Collectable collectable = room.getCollectableAt(oldPos);
+            room.removeCollectable(collectable);
+            collectableList.getItems().remove(collectable);
         }
     }
 

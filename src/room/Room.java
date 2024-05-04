@@ -158,7 +158,16 @@ public class Room implements Environment {
 
         return false;
     }
-
+    public Collectable getCollectableAt(Position p) {
+        for (Collectable collectable : myCollectables) {
+            Position pos = collectable.getPosition();
+            int size = collectable.getSize();
+            if (collectableAt(p, size, collectable)) {
+                return collectable;
+            }
+        }
+        return null;
+    }
     @Override
     public double getWidth() {
         return width;
