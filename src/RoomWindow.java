@@ -255,6 +255,8 @@ public class RoomWindow extends Application {
                     map[j][i] = 'X'; // Update cell to 'X' with 50% probability
                 } else if (room.robotAt(PosCheck, 1, null)) {
                     map[j][i] = 'R'; // Update cell to empty space with 50% probability
+                }else if (room.collectableAt(PosCheck, 1, null)) {
+                    map[j][i] = 'C'; // Update cell to empty space with 50% probability
                 }else {
                     map[j][i] = '.'; // Update cell to empty space with 50% probability
                 }
@@ -422,6 +424,7 @@ public class RoomWindow extends Application {
     private void moveRobot(ControlledRobot robot) {
         double oldX = robot.getPosition().getWidth() ;
         double oldY = robot.getPosition().getHeight() ;
+        Position oldPos =  new Position(oldX , oldY);
         double angleInRadians = Math.toRadians(robot.angle());
         int speed = robot.getSpeed();
         double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
@@ -434,6 +437,12 @@ public class RoomWindow extends Application {
             drawRobot(newX, newY, robot,robot.getSize());
         } else {
             robot.turn(robot.getTurnAngle());
+        }
+        if (!room.collectableAt(oldPos, robot.getSize(), null)&& room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
+            collected++;
+            Collectable collectable = room.getCollectableAt(oldPos);
+            room.removeCollectable(collectable);
+            collectableList.getItems().remove(collectable);
         }
     }
 
@@ -609,7 +618,6 @@ public class RoomWindow extends Application {
     private void moveRobotForward(ControlledRobot robot) {
         double oldX = robot.getPosition().getWidth() ;
         double oldY = robot.getPosition().getHeight() ;
-        Position oldPos =  new Position(oldX , oldY);
         double angleInRadians = Math.toRadians(robot.angle());
         int speed = robot.getSpeed();
         double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
@@ -621,12 +629,7 @@ public class RoomWindow extends Application {
             robot.setPosition(newPosition);
             drawRobot(newX, newY, robot,robot.getSize());
         }
-        if (!room.collectableAt(oldPos, robot.getSize(), null)&& room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
-            collected++;
-            Collectable collectable = room.getCollectableAt(oldPos);
-            room.removeCollectable(collectable);
-            collectableList.getItems().remove(collectable);
-        }
+
     }
 
     //private void startContinuousMovement(ControlledRobot robot, double targetX, double targetY) {
