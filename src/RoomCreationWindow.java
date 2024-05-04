@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import java.io.BufferedReader;
@@ -21,6 +22,7 @@ public class RoomCreationWindow extends Application {
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Create Room");
+        Label chooseMapLabel = new Label("Choose the Map");
 
         Button map1 = new Button("Map 1");
         map1.setOnAction(e -> {
@@ -34,20 +36,15 @@ public class RoomCreationWindow extends Application {
             launchRoomWindow();
             primaryStage.close();
         });
-        HBox hboxButtons = new HBox(10,map1,map2);
-                GridPane grid = new GridPane();
+
+        HBox hboxButtons = new HBox(10, map1, map2);
         hboxButtons.setAlignment(Pos.CENTER);
 
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(50);
-        grid.setVgap(140);
+        VBox vbox = new VBox(20, chooseMapLabel, hboxButtons);
+        vbox.setAlignment(Pos.CENTER);
 
-        grid.add(map1, 0, 3, 2, 1);
-        GridPane.setHalignment(map1, HPos.CENTER);
-        grid.add(map2, 0, 3, 2, 1);
-        GridPane.setHalignment(map2, HPos.CENTER);
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(grid, screenBounds.getWidth(), screenBounds.getHeight());
+        Scene scene = new Scene(vbox, screenBounds.getWidth(), screenBounds.getHeight());
         scene.getStylesheets().add("style.css");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);

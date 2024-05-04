@@ -9,11 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -21,7 +18,6 @@ import common.Environment;
 import tool.common.Position;
 import room.ControlledRobot;
 import room.Room;
-import common.Robot;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javax.swing.JOptionPane;
@@ -32,12 +28,15 @@ import common.Obstacle;
 import java.util.Map;
 import java.util.HashMap;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.KeyCode;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RoomWindow extends Application {
     private Canvas canvas;
     private int CELL_SIZE = 60;
-    private int OBSTACLE_SIZE = 10;
+    private int OBSTACLE_SIZE = 1;
     private int ROBOT_SIZE = 30;
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
@@ -132,8 +131,10 @@ public class RoomWindow extends Application {
         Button btnKeyboardMovement = new Button("Keyboard Movement");
         btnKeyboardMovement.setPrefSize(200, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
-
-        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete, btnKeyboardMovement);
+        Button btnSaveReplay = new Button("Save Replay");
+        btnSaveReplay.setPrefSize(200, 50);
+        btnSaveReplay.setOnAction(event -> toggleKeyboardControl());
+        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement, btnSaveReplay);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
         VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
@@ -152,6 +153,7 @@ public class RoomWindow extends Application {
                 drawAllObjects();
             }
         });
+        startLogging();
         scene.setOnKeyPressed(this::handleKeyPress);
         primaryStage.setTitle("Room Grid Window");
         primaryStage.setScene(scene);
@@ -172,18 +174,69 @@ public class RoomWindow extends Application {
 
                 switch (symbol) {
                     case 'X': // Add obstacle
-                        placeObject(x,y,60);
+                        placeObject(x,y,OBSTACLE_SIZE*CELL_SIZE);
                         break;
                     case 'R': // Add robot
                         System.out.println("Place robot " + x + " " + y);
-                        placeRobot(x,y,40,25,30, 10);
+                        placeRobot(x,y,40,25,ROBOT_SIZE, 10);
                         break;
                     // Add cases for other symbols as needed
                 }
             }
         }
     }
+    private void logMapStateToFile() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("map_log.txt", true))) {
+            writer.println("Timestamp: " + System.currentTimeMillis());
+            for (int row = 0; row < map.length; row++) {
+                for (int col = 0; col < map[row].length; col++) {
+                    writer.print(map[row][col]);
+                }
+                writer.println(); // New line for each row
+            }
+            writer.println();
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle or log the exception as needed
+        }
+    }
+    private void startLogging() {
+        int[] seconds = {0}; // Variable to track elapsed time
+        Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
 
+        // Create a Timeline to trigger logging every second
+        timeline[0] = new Timeline(
+                new KeyFrame(Duration.seconds(1), e -> {
+                    // Log map state to file
+                    updateMap();
+                    logMapStateToFile();
+
+                    // Increment elapsed time
+                    seconds[0]++;
+
+                    // Check if 60 seconds have elapsed, stop logging if yes
+                    if (seconds[0] >= 60) {
+                        timeline[0].stop();
+                    }
+                })
+        );
+        timeline[0].setCycleCount(Timeline.INDEFINITE);
+        timeline[0].play();
+    }
+    private void updateMap() {
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map[i].length; j++) {
+                Position PosCheck = new Position(i* CELL_SIZE + CELL_SIZE / 2, j* CELL_SIZE + CELL_SIZE / 2);
+                if (room.obstacleAt(PosCheck, OBSTACLE_SIZE*CELL_SIZE, null)) {
+                    map[i][j] = 'X'; // Update cell to 'X' with 50% probability
+                } else if (room.robotAt(PosCheck, OBSTACLE_SIZE*CELL_SIZE, null)) {
+                    map[i][j] = 'R'; // Update cell to empty space with 50% probability
+                }else {
+                    map[i][j] = '.'; // Update cell to empty space with 50% probability
+                }
+            }
+        }
+    }
     private void clearCanvas(GraphicsContext gc) {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
