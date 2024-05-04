@@ -32,4 +32,10 @@ public class Obstacle {
     public int getSize() {
         return size;
     }
+    public void setPosition(Position pos) {
+        this.position = pos;
+    }
+    public void setSize(int size) {
+        this.size = size;
+    }
 }

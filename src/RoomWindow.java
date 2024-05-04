@@ -410,14 +410,85 @@ public class RoomWindow extends Application {
 
     private void handleChange() {
         if (selectedRobot != null) {
+            openRobotChangeDialog(selectedRobot);
         } else if (selectedObstacle != null) {
+            openObstacleChangeDialog(selectedObstacle);
         }
+    }
+
+    private void openRobotChangeDialog(ControlledRobot robot) {
+        Stage dialog = new Stage();
+        VBox dialogVbox = new VBox(10);
+        dialogVbox.setAlignment(Pos.CENTER);
+
+        // Создание спиннеров для установки различных параметров робота
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) robot.getPosition().getWidth());
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) robot.getPosition().getHeight());
+        Spinner<Integer> spinnerSpeed = new Spinner<>(1, 100, robot.getSpeed());
+        Spinner<Integer> spinnerOrientationAngle = new Spinner<>(0, 360, robot.getAngle());  // Угол ориентации робота
+        Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, robot.getTurnAngle());  // Угол поворота робота
+        Spinner<Integer> spinnerDetectionRange = new Spinner<>(1, 100, robot.getDetectionRange());
+
+        Button btnUpdate = new Button("Update");
+        btnUpdate.setOnAction(e -> {
+            robot.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+            robot.setSpeed(spinnerSpeed.getValue());
+            robot.setAngle(spinnerOrientationAngle.getValue());
+            robot.setTurnAngle(spinnerTurnAngle.getValue());
+            robot.setDetectionRange(spinnerDetectionRange.getValue());
+            drawAllObjects();
+            dialog.close();
+        });
+
+        dialogVbox.getChildren().addAll(
+                new Label("X Coordinate:"), spinnerX,
+                new Label("Y Coordinate:"), spinnerY,
+                new Label("Speed:"), spinnerSpeed,
+                new Label("Orientation Angle:"), spinnerOrientationAngle,
+                new Label("Turn Angle:"), spinnerTurnAngle,
+                new Label("Detection Range:"), spinnerDetectionRange,
+                btnUpdate
+        );
+
+        Scene dialogScene = new Scene(dialogVbox, 300, 350);
+        dialog.setScene(dialogScene);
+        dialog.show();
+    }
+
+    private void openObstacleChangeDialog(Obstacle obstacle) {
+        Stage dialog = new Stage();
+        VBox dialogVbox = new VBox(10);
+        dialogVbox.setAlignment(Pos.CENTER);
+
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) obstacle.getPosition().getWidth());
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) obstacle.getPosition().getHeight());
+        Spinner<Integer> spinnerSize = new Spinner<>(1, 100, obstacle.getSize());
+
+        Button btnUpdate = new Button("Update");
+        btnUpdate.setOnAction(e -> {
+            obstacle.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+            obstacle.setSize(spinnerSize.getValue());
+            drawAllObjects();
+            dialog.close();
+        });
+
+        dialogVbox.getChildren().addAll(
+                new Label("X Coordinate:"), spinnerX,
+                new Label("Y Coordinate:"), spinnerY,
+                new Label("Size:"), spinnerSize,
+                btnUpdate
+        );
+
+        Scene dialogScene = new Scene(dialogVbox, 300, 250);
+        dialog.setScene(dialogScene);
+        dialog.show();
     }
 
     private void handleDelete() {
         if (selectedRobot != null) {
             room.removeRobot(selectedRobot);
             robotList.getItems().remove(selectedRobot);
+            robotList.getSelectionModel().clearSelection(); // Сброс выбора
             selectedRobot = null;
             gc.setFill(Color.LIGHTGRAY);
             gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -426,6 +497,7 @@ public class RoomWindow extends Application {
         else if (selectedObstacle != null) {
             room.removeObstacle(selectedObstacle);
             obstacleList.getItems().remove(selectedObstacle);
+            obstacleList.getSelectionModel().clearSelection(); // Сброс выбора
             selectedObstacle = null;
             gc.setFill(Color.LIGHTGRAY);
             gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -458,8 +530,12 @@ public class RoomWindow extends Application {
                 case PAGE_UP:
                     moveRobotForward(activeRobot);
                     break;
-                case F:
+                case G:
                     activeRobot.turn(activeRobot.getTurnAngle());
+                    drawAllObjects();
+                    break;
+                case F:
+                    activeRobot.turn(-1 * activeRobot.getTurnAngle());
                     drawAllObjects();
                     break;
                 default:

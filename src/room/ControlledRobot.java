@@ -167,4 +167,8 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     public void setAngle(int angle) {
         this.angle = angle;
     }
+    public int getAngle() {
+        return angle;
+    }
+
 }
