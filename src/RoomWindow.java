@@ -131,10 +131,7 @@ public class RoomWindow extends Application {
         Button btnKeyboardMovement = new Button("Keyboard Movement");
         btnKeyboardMovement.setPrefSize(200, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
-        Button btnSaveReplay = new Button("Save Replay");
-        btnSaveReplay.setPrefSize(200, 50);
-        btnSaveReplay.setOnAction(event -> toggleKeyboardControl());
-        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement, btnSaveReplay);
+        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
         VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
@@ -221,15 +218,16 @@ public class RoomWindow extends Application {
         timeline[0].play();
     }
     private void updateMap() {
+        int scale = (CELL_SIZE /map.length);
         for (int i = 0; i < map.length; i++) {
             for (int j = 0; j < map[i].length; j++) {
-                Position PosCheck = new Position(i* CELL_SIZE + CELL_SIZE / 2, j* CELL_SIZE + CELL_SIZE / 2);
-                if (room.obstacleAt(PosCheck, OBSTACLE_SIZE*CELL_SIZE, null)) {
-                    map[i][j] = 'X'; // Update cell to 'X' with 50% probability
-                } else if (room.robotAt(PosCheck, OBSTACLE_SIZE*CELL_SIZE, null)) {
-                    map[i][j] = 'R'; // Update cell to empty space with 50% probability
+                Position PosCheck = new Position( scale * i + scale / 2, scale * j + scale / 2);
+                if (room.obstacleAt(PosCheck, 1, null)) {
+                    map[j][i] = 'X'; // Update cell to 'X' with 50% probability
+                } else if (room.robotAt(PosCheck, 1, null)) {
+                    map[j][i] = 'R'; // Update cell to empty space with 50% probability
                 }else {
-                    map[i][j] = '.'; // Update cell to empty space with 50% probability
+                    map[j][i] = '.'; // Update cell to empty space with 50% probability
                 }
             }
         }
@@ -388,7 +386,7 @@ public class RoomWindow extends Application {
 
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
-        gc.fillRect(x - 1 , y - 1  , 32,  32);
+        gc.fillRect(x-1, y-1 , size+2,  size+2);
     }
 
     private void drawAllObjects() {
@@ -406,12 +404,8 @@ public class RoomWindow extends Application {
         drawAllObjects();
         gc.setStroke(Color.YELLOW);
         gc.setLineWidth(2);
-        if (isRobot) {
-            gc.strokeOval(pos.getWidth(), pos.getHeight(), 30, 30); // Выделение робота
-        } else {
-            int size = selectedObstacle.getSize();
-            gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); // Выделение препятствия
-        }
+        int size = selectedObstacle.getSize();
+        gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); // Выделение препятствия
     }
 
     private void handleChange() {
