@@ -164,4 +164,7 @@ public class ControlledRobot extends AbstractObservableRobot implements Robot {
     public void setDetectionRange(int detectionRange) {
         this.detectionRange = detectionRange;
     }
+    public void setAngle(int angle) {
+        this.angle = angle;
+    }
 }

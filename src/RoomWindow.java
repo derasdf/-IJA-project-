@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -63,7 +64,25 @@ public class RoomWindow extends Application {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room = Room.create(600, 600);
+        canvas.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && selectedRobot != null) {
+                activeRobot = selectedRobot;
+                moveTowards(activeRobot, e.getX(), e.getY());
+            }
+        });
 
+        canvas.setOnMouseDragged(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && activeRobot != null) {
+                moveTowards(activeRobot, e.getX(), e.getY());
+            }
+        });
+
+        canvas.setOnMouseReleased(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && activeRobot != null) {
+                stopContinuousMovement(activeRobot);
+                activeRobot = null;
+            }
+        });
         robotList = new ListView<>();
         obstacleList = new ListView<>();
         robotList.setItems(FXCollections.observableArrayList(room.robots()));
@@ -280,19 +299,17 @@ public class RoomWindow extends Application {
     }
     private void startAutomatic(GraphicsContext gc) {
         if (selectedRobot == null) {
-            return; // Если робот не выбран, ничего не делаем
+            return;
         }
         ControlledRobot robot = selectedRobot;
         Timeline timeline = robotTimelines.get(selectedRobot);
         System.out.println("startAutomatic " + timeline);
         if (timeline == null) {
-            // Создаем новый таймлайн, если для выбранного робота его нет
             timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> moveRobot(robot)));
             timeline.setCycleCount(Timeline.INDEFINITE);
             robotTimelines.put(selectedRobot, timeline);
             timeline.play();
         } else {
-            // Если таймлайн уже существует, останавливаем или запускаем его в зависимости от состояния
             if (timeline.getStatus() == Animation.Status.RUNNING) {
                 timeline.stop();
             } else {
@@ -378,13 +395,11 @@ public class RoomWindow extends Application {
                 activeRobot = null;
             } else {
                 if (activeRobot != null) {
-                    // Остановить текущую анимацию или действие
                     keyboardControlActive = false;
                     activeRobot = null;
                 }
                 keyboardControlActive = true;
                 activeRobot = selectedRobot;
-                // Остановить автоматическое движение, если оно активно
                 stopAutomaticMovement(activeRobot);
             }
         }
@@ -393,13 +408,13 @@ public class RoomWindow extends Application {
     private void handleKeyPress(KeyEvent event) {
         if (keyboardControlActive && activeRobot != null) {
             switch (event.getCode()) {
-                case W: // Учитывайте, что 'W' относится к английской раскладке клавиатуры
+                case W:
                     moveRobotForward(activeRobot);
                     break;
-                case PAGE_UP: // PAGE_UP для клавиши Page Up
+                case PAGE_UP:
                     moveRobotForward(activeRobot);
                     break;
-                case F: // 'F' вместо пробела для поворота
+                case F:
                     activeRobot.turn(activeRobot.getTurnAngle());
                     drawAllObjects();
                     break;
@@ -429,6 +444,59 @@ public class RoomWindow extends Application {
             robot.setPosition(newPosition);
             drawRobot(newX, newY, robot);
         }
+    }
+
+    //private void startContinuousMovement(ControlledRobot robot, double targetX, double targetY) {
+     //   double angle = Math.toDegrees(Math.atan2(targetY - robot.getPosition().getHeight(), targetX - robot.getPosition().getWidth()));
+     //   robot.setAngle((int) angle);
+//
+     //   Timeline movementTimeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> moveTowards(robot, targetX, targetY)));
+     //   movementTimeline.setCycleCount(Timeline.INDEFINITE);
+     //   robotTimelines.put(robot, movementTimeline);
+      //  movementTimeline.play();
+    //}
+
+    private void stopContinuousMovement(ControlledRobot robot) {
+        Timeline timeline = robotTimelines.get(robot);
+        if (timeline != null) {
+            timeline.stop();
+            robotTimelines.remove(robot);
+            drawAllObjects();
+        }
+    }
+
+    private void moveTowards(ControlledRobot robot, double targetX, double targetY) {
+        final Timeline[] timelineHolder = new Timeline[1];
+        timelineHolder[0] = robotTimelines.get(robot);
+        if (timelineHolder[0] != null) {
+            timelineHolder[0].stop();
+        }
+
+        timelineHolder[0] = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> {
+            double currentX = robot.getPosition().getWidth();
+            double currentY = robot.getPosition().getHeight();
+            double dx = targetX - currentX;
+            double dy = targetY - currentY;
+            double distanceToMove = Math.min(robot.getSpeed() * 0.1, Math.sqrt(dx * dx + dy * dy));
+
+            if (distanceToMove < 1) {
+                timelineHolder[0].stop();
+            } else {
+                double angleInRadians = Math.atan2(dy, dx);
+                double newX = currentX + Math.cos(angleInRadians) * distanceToMove;
+                double newY = currentY + Math.sin(angleInRadians) * distanceToMove;
+                Position newPosition = new Position(newX , newY);
+                Position PosCheck = new Position(newX - robot.getDetectionRange(), newY - robot.getDetectionRange());
+                if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
+                    clearRobotAt(gc, currentX, currentY, robot.getSize());
+                    robot.setPosition(newPosition);
+                    drawRobot(newX, newY, robot);
+                }
+            }
+        }));
+        timelineHolder[0].setCycleCount(Animation.INDEFINITE);
+        robotTimelines.put(robot, timelineHolder[0]);
+        timelineHolder[0].play();
     }
     public static void main(String[] args) {
         launch(args);
