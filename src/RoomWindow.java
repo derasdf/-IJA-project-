@@ -18,6 +18,7 @@ import common.Environment;
 import tool.common.Position;
 import room.ControlledRobot;
 import room.Room;
+import common.Collectable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javax.swing.JOptionPane;
@@ -31,8 +32,7 @@ import javafx.scene.input.KeyEvent;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import javafx.scene.image.Image;
 public class RoomWindow extends Application {
     private Canvas canvas;
     private int CELL_SIZE = 600;
@@ -46,6 +46,7 @@ public class RoomWindow extends Application {
     GraphicsContext gc;
     ListView<ControlledRobot> robotList;
     ListView<Obstacle> obstacleList;
+    ListView<Collectable> collectableList;
     ControlledRobot selectedRobot;
     Obstacle selectedObstacle;
 
@@ -84,8 +85,12 @@ public class RoomWindow extends Application {
         });
         robotList = new ListView<>();
         obstacleList = new ListView<>();
+        collectableList = new ListView<>();
+
         robotList.setItems(FXCollections.observableArrayList(room.robots()));
         obstacleList.setItems(FXCollections.observableArrayList(room.myObstacleslist()));
+        collectableList.setItems(FXCollections.observableArrayList(room.myCollectableslist()));
+
 
         robotList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
@@ -326,8 +331,8 @@ public class RoomWindow extends Application {
     }
     private void drawRobot(double x, double y, ControlledRobot robot,int size ) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.BLUE);
-        gc.fillOval(x, y, size, size);
+        Image robotImage = new Image("/images/pyl.png");
+        gc.drawImage(robotImage, x, y, size, size);
         if (robot.equals(selectedRobot)) {
             gc.setStroke(Color.YELLOW);
             gc.setLineWidth(2);

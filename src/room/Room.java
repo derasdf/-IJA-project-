@@ -8,6 +8,7 @@ import common.Environment;
 import tool.common.Position;
 import common.Robot;
 import common.Obstacle;
+import common.Collectable;
 import tool.common.ToolRobot;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class Room implements Environment {
     private double height;
     private List<ControlledRobot> myRobots;
     private List<Obstacle> myObstacles;
+    private List<Collectable> myCollectables;
 
     private Room(double width, double height) {
         if (width <= 0 || height <= 0) {
@@ -25,6 +27,7 @@ public class Room implements Environment {
         this.width = width;
         this.height = height;
         this.myObstacles = new ArrayList<>();
+        this.myCollectables = new ArrayList<>();
         this.myRobots = new ArrayList<>();
     }
 
@@ -59,6 +62,21 @@ public class Room implements Environment {
         }
         myObstacles.add(obstacle);
         System.out.println("Obstacles in func " + myObstacleslist().size() );
+        return true;
+    }
+    @Override
+    public boolean createCollectableAt(Collectable collectable) {
+        Position pos = collectable.getPosition();
+        int size = collectable.getSize();
+        System.out.println("Room.createCollectableAt " + containsPosition(pos, size) + " " + collectableAt(pos, size, null) + " " + robotAt(pos, size, null));
+        if (!containsPosition(collectable.getPosition(), size)) {
+            return false;
+        }
+        if (collectableAt(pos, size, null) || robotAt(pos, size, null)) {
+            return false;
+        }
+        myCollectables.add(collectable);
+        System.out.println("Obstacles in func " + myCollectableslist().size() );
         return true;
     }
 
@@ -114,6 +132,32 @@ public class Room implements Environment {
         return false;
     }
 
+    @Override
+    public boolean collectableAt(Position p, int size, Collectable checkingCollectable) {
+        double width = p.getWidth();
+        double height = p.getHeight();
+
+        double newRight = width + size;
+        double newBottom = height + size;
+
+        for (Collectable collectable : myCollectables) {
+            if (collectable != checkingCollectable) {  // Check if it's not the same collectable
+                Position pos = collectable.getPosition();
+                double colX = pos.getWidth();
+                double colY = pos.getHeight();
+                int colSize = collectable.getSize();
+                double colRight = colX + colSize;
+                double colBottom = colY + colSize;
+
+                if (((newRight > colX && newRight < colRight) || (width > colX && width < colRight) || (width < colX && newRight > colRight)) &&
+                        ((newBottom > colY && newBottom < colBottom) || (height > colY && height < colBottom) || (height < colY && newBottom > colBottom))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     @Override
     public double getWidth() {
@@ -166,14 +210,18 @@ public class Room implements Environment {
     }
     public List<Obstacle> myObstacleslist() {
         return new ArrayList<>(myObstacles);
-
     }
-
+    public List<Collectable> myCollectableslist() {
+        return new ArrayList<>(myCollectables);
+    }
     public void clearRobots(){
         myRobots.clear();
     }
     public void clearObstacles(){
         myObstacles.clear();
+    }
+    public void clearCollectables(){
+        myCollectables.clear();
     }
     public void removeRobot(ControlledRobot robot){
         myRobots.remove(robot);
@@ -181,5 +229,9 @@ public class Room implements Environment {
     public void removeObstacle(Obstacle obstacle){
         myObstacles.remove(obstacle);
     }
+    public void removeCollectable(Collectable collectable){
+        myCollectables.remove(collectable);
+    }
+
 
 }
