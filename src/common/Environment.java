@@ -8,6 +8,9 @@ package common;
 import room.ControlledRobot;
 import tool.common.ToolEnvironment;
 import tool.common.Position;
+
+import java.util.List;
+
 public interface Environment extends ToolEnvironment {
     boolean addRobot(Robot robot);
     boolean createObstacleAt(Obstacle obstacle);
@@ -23,4 +26,5 @@ public interface Environment extends ToolEnvironment {
     void removeRobot(ControlledRobot robot);
     void removeObstacle(Obstacle obstacle);
     void removeCollectable(Collectable collectable);
+    List<Collectable> myCollectableslist();
 }
