@@ -46,6 +46,7 @@ public class RoomWindow extends Application {
     private final int  CELL_SIZE = 600;
     private int collected = 0;
     private int collectedExists = 0;
+    private boolean mouseControlActive = false;
     private int timeLeft = 60;
     Label dustLabel = new Label("");
     Label TimerLabel = new Label("");
@@ -115,7 +116,7 @@ public class RoomWindow extends Application {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room = Room.create(600, 600);
-        canvas.setOnMousePressed(e -> {
+        /*canvas.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY && selectedRobot != null) {
                 activeRobot = selectedRobot;
                 moveTowards(activeRobot, e.getX(), e.getY());
@@ -133,7 +134,7 @@ public class RoomWindow extends Application {
                 stopContinuousMovement(activeRobot);
                 activeRobot = null;
             }
-        });
+        });*/
 
         // List views setup
         robotList = new ListView<>();
@@ -220,7 +221,11 @@ public class RoomWindow extends Application {
         btnMouseMovement.setPrefSize(buttonWidth, 50);
         btnMouseMovement.setOnAction(e -> {
             if (selectedRobot != null) {
-                activeRobot = selectedRobot;
+                if (mouseControlActive) {
+                    stopMouseMovement();
+                } else {
+                    startMouseMovement(selectedRobot);
+                }
             }
         });
 
@@ -372,7 +377,35 @@ public class RoomWindow extends Application {
         obstacleList.getItems().clear();
         collectableList.getItems().clear();
     }
-
+    private void startMouseMovement(ControlledRobot robot) {
+        stopAutomaticMovement(robot);
+        keyboardControlActive = false;
+        mouseControlActive = true;
+        activeRobot = robot;
+        canvas.setOnMousePressed(e -> {
+            if (mouseControlActive && e.getButton() == MouseButton.PRIMARY && activeRobot != null) {
+                moveTowards(activeRobot, e.getX(), e.getY());
+            }
+        });
+        canvas.setOnMouseDragged(e -> {
+            if (mouseControlActive && e.getButton() == MouseButton.PRIMARY && activeRobot != null) {
+                moveTowards(activeRobot, e.getX(), e.getY());
+            }
+        });
+        canvas.setOnMouseReleased(e -> {
+            if (mouseControlActive && e.getButton() == MouseButton.PRIMARY && activeRobot != null) {
+                stopContinuousMovement(activeRobot);
+                activeRobot = null;
+            }
+        });
+    }
+    private void stopMouseMovement() {
+        mouseControlActive = false;
+        activeRobot = null;
+        canvas.setOnMousePressed(null);
+        canvas.setOnMouseDragged(null);
+        canvas.setOnMouseReleased(null);
+    }
     private void openRobotDialog() {
         Stage dialog = new Stage();
         dialog.initStyle(StageStyle.DECORATED);
@@ -430,7 +463,6 @@ public class RoomWindow extends Application {
         dialogVbox.setPadding(new Insets(20));
         dialogVbox.setStyle("-fx-background-color: #643d88; ");
 
-        Scene dialogScene = new Scene(dialogVbox, 400, 400);
         Scene dialogScene = new Scene(dialogVbox, 400, 600);
         dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
@@ -580,6 +612,8 @@ public class RoomWindow extends Application {
                 timeline.stop();
             } else {
                 timeline.play();
+                stopMouseMovement();
+
             }
         }
     }
@@ -689,8 +723,8 @@ public class RoomWindow extends Application {
     private void openRobotChangeDialog(ControlledRobot robot) {
         Stage dialog = new Stage();
         // Создание спиннеров для установки различных параметров робота
-        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) robot.getPosition().getWidth());
-        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) robot.getPosition().getHeight());
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) robot.getPosition().getWidth() + robot.getSize()/2);
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) robot.getPosition().getHeight() + robot.getSize()/2);
         Spinner<Integer> spinnerSpeed = new Spinner<>(1, 100, robot.getSpeed());
         Spinner<Integer> spinnerOrientationAngle = new Spinner<>(0, 360, robot.getAngle());  // Угол ориентации робота
         Spinner<Integer> spinnerTurnAngle = new Spinner<>(1, 359, robot.getTurnAngle());  // Угол поворота робота
@@ -720,7 +754,7 @@ public class RoomWindow extends Application {
         grid.addRow(5, detectionRangeLabel, spinnerDetectionRange);
         Button btnUpdate = new Button("Update");
         btnUpdate.setOnAction(e -> {
-            Position newPos = new Position(spinnerX.getValue() - robot.getDetectionRange(), spinnerY.getValue()- robot.getDetectionRange());
+            Position newPos = new Position(spinnerX.getValue() - robot.getSize()/2 - robot.getDetectionRange(), spinnerY.getValue() - robot.getSize()/2 - robot.getDetectionRange());
             if(room.robotAt(newPos, robot.getSize() + 2*robot.getDetectionRange(), robot) || room.obstacleAt(newPos, robot.getSize()+ 2*robot.getDetectionRange(), null) || !room.containsPosition(newPos, robot.getSize()+ 2*robot.getDetectionRange()))
             {
                 JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
@@ -728,7 +762,7 @@ public class RoomWindow extends Application {
             }
             else
             {
-                robot.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+                robot.setPosition(new Position(spinnerX.getValue()- robot.getSize()/2, spinnerY.getValue()- robot.getSize()/2));
             }
             robot.setSpeed(spinnerSpeed.getValue());
             robot.setAngle(spinnerOrientationAngle.getValue());
@@ -765,13 +799,13 @@ public class RoomWindow extends Application {
         Stage dialog = new Stage();
 
 
-        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) obstacle.getPosition().getWidth());
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) obstacle.getPosition().getWidth() + obstacle.getSize()/2);
         spinnerX.setEditable(true);
-        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) obstacle.getPosition().getHeight());
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) obstacle.getPosition().getHeight() + obstacle.getSize()/2);
         spinnerY.setEditable(true);
         Spinner<Integer> spinnerSize = new Spinner<>(10, 100, (int) obstacle.getSize());
         spinnerSize.setEditable(true);
-        Position pos = new Position(spinnerX.getValue(), spinnerY.getValue());
+        Position pos = new Position(spinnerX.getValue() - spinnerSize.getValue()/2, spinnerY.getValue()- spinnerSize.getValue()/2);
         Button btnUpdate = new Button("Update");
         btnUpdate.setStyle("-fx-background-color: #d9b0ff; -fx-text-fill: #643d88;");
         btnUpdate.setOnAction(e -> {
@@ -780,7 +814,7 @@ public class RoomWindow extends Application {
                 return;
             }
             else {
-                obstacle.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+                obstacle.setPosition(new Position(spinnerX.getValue() - spinnerSize.getValue()/2 , spinnerY.getValue()- spinnerSize.getValue()/2));
                 obstacle.setSize(spinnerSize.getValue());
                 drawAllObjects();
             }

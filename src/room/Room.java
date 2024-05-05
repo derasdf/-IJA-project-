@@ -113,14 +113,15 @@ public class Room implements Environment {
         double newBottom = height + size;
 
         for (Obstacle obstacle : myObstacles) {
-            if (obstacle != checkingObstacle) {  // Проверяем, что это не тот же самый робот
+            if (obstacle != checkingObstacle) {
+                System.out.println(obstacle);// Проверяем, что это не тот же самый робот
                 Position pos = obstacle.getPosition();
                 double obsX = pos.getWidth();
                 double obsY = pos.getHeight();
                 int obsSize = obstacle.getSize();
                 double obsRight = obsX + obsSize;
                 double obsBottom = obsY + obsSize;
-
+                System.out.println(newRight + " " + obsX);
                 if (((newRight > obsX && newRight < obsRight) || (width > obsX && width < obsRight) || (width < obsX && newRight > obsRight)) &&
                         ((newBottom > obsY && newBottom < obsBottom) || (height > obsY && height < obsBottom) || (height < obsY && newBottom > obsBottom))) {
                     return true;
