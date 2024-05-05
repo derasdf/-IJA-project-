@@ -381,15 +381,22 @@ public class RoomWindow extends Application {
             drawCollectable(newCollectable.getPosition().getWidth() , newCollectable.getPosition().getHeight() , size, newCollectable);
         }
     }
-    private void drawRobot(double x, double y, ControlledRobot robot,int size ) {
+    private void drawRotatedImage(GraphicsContext gc, Image image, double angle, double x, double y, int size) {
+        clearRobotAt(gc, x, y, angle, size);
+        gc.save(); // Сохраняем текущее состояние графического контекста
+        gc.translate(x + size / 2, y + size / 2); // Перемещаем контекст в центр изображения
+        gc.rotate(angle); // Поворачиваем контекст
+        gc.translate(-size / 2, -size / 2); // Сдвигаем обратно на половину размера
+        gc.drawImage(image, 0, 0, size, size); // Рисуем изображение
+        gc.restore(); // Восстанавливаем графический контекст
+    }
+    private void drawRobot(double x, double y, ControlledRobot robot, int size) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        Image robotImage = new Image("/images/pyl.png");
-        gc.drawImage(robotImage, x, y, size, size);
-        if (robot.equals(selectedRobot)) {
-            gc.setStroke(Color.YELLOW);
-            gc.setLineWidth(2);
-            gc.strokeOval(x, y, size, size);
-        }
+        Image basicImage = new Image("/images/robot-vacuum-basic.png");
+        Image selectedImage = new Image("/images/robot-vacuum-color.png");
+        Image robotImage = robot.equals(selectedRobot) ? selectedImage : basicImage;
+        drawRotatedImage(gc, robotImage, robot.angle(), x, y, size);
+
     }
 
     private void drawObstacle(double x, double y, int size, Obstacle obstacle) {
@@ -444,9 +451,10 @@ public class RoomWindow extends Application {
         Position newPosition = new Position(newX , newY);
         Position PosCheck = new Position(newX - robot.getDetectionRange(), newY - robot.getDetectionRange());
         if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
-            clearRobotAt(gc, oldX, oldY, robot.getSize());
+            //clearRobotAt(gc, oldX, oldY,robot.getAngle(), robot.getSize());
             robot.setPosition(newPosition);
-            drawRobot(newX, newY, robot,robot.getSize());
+            //drawRobot(newX, newY, robot,robot.getSize());
+            drawAllObjects();
         } else {
             robot.turn(robot.getTurnAngle());
         }
@@ -472,7 +480,26 @@ public class RoomWindow extends Application {
     }
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
-        gc.fillRect(x-1, y-1 , size+2,  size+2);
+        gc.fillRect(x - 1, y - 1, size + 2, size + 2);
+    }
+    private void clearRotatedImageAt(GraphicsContext gc, double x, double y, double angle, int size, Color backgroundColor) {
+        // Сохраняем текущее состояние графического контекста
+        gc.save();
+
+        // Перемещаем контекст в центр изображения и поворачиваем
+        gc.translate(x + size / 2, y + size / 2);
+        gc.rotate(angle);
+
+        // Очищаем область изображения
+        gc.setFill(backgroundColor);
+        gc.fillRect(-size / 2 , -size / 2 , size + 4, size + 4);
+
+        // Восстанавливаем графический контекст
+        gc.restore();
+    }
+
+    private void clearRobotAt(GraphicsContext gc, double x, double y, double angle, int size) {
+        clearRotatedImageAt(gc, x, y, angle, size, Color.LIGHTGRAY);
     }
 
     private void drawAllObjects() {
@@ -671,9 +698,10 @@ public class RoomWindow extends Application {
         Position newPosition = new Position(newX , newY);
         Position PosCheck = new Position(newX - robot.getDetectionRange(), newY - robot.getDetectionRange());
         if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
-            clearRobotAt(gc, oldX, oldY, robot.getSize());
+            //clearRobotAt(gc, oldX, oldY,robot.getAngle(), robot.getSize());
             robot.setPosition(newPosition);
-            drawRobot(newX, newY, robot,robot.getSize());
+            drawAllObjects();
+            //drawRobot(newX, newY, robot,robot.getSize());
         }
         if (room.collectableAt(oldPos, robot.getSize(), null)) {
             Collectable collectable = room.getCollectableAt(oldPos, robot.getSize());
@@ -704,7 +732,11 @@ public class RoomWindow extends Application {
             drawAllObjects();
         }
     }
-
+    private double calculateAngleToCursor(ControlledRobot robot, double cursorX, double cursorY) {
+        double dx = cursorX - robot.getPosition().getWidth();
+        double dy = cursorY - robot.getPosition().getHeight();
+        return Math.toDegrees(Math.atan2(dy, dx));
+    }
     private void moveTowards(ControlledRobot robot, double targetX, double targetY) {
         final Timeline[] timelineHolder = new Timeline[1];
         timelineHolder[0] = robotTimelines.get(robot);
@@ -713,6 +745,8 @@ public class RoomWindow extends Application {
         }
 
         timelineHolder[0] = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> {
+            double angleToCursor = calculateAngleToCursor(robot, targetX, targetY);
+            robot.setAngle((int) angleToCursor);
             double currentX = robot.getPosition().getWidth();
             double currentY = robot.getPosition().getHeight();
             double dx = targetX - currentX;
@@ -728,9 +762,10 @@ public class RoomWindow extends Application {
                 Position newPosition = new Position(newX , newY);
                 Position PosCheck = new Position(newX - robot.getDetectionRange(), newY - robot.getDetectionRange());
                 if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * robot.getDetectionRange(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
-                    clearRobotAt(gc, currentX, currentY, robot.getSize());
+                    //clearRobotAt(gc, currentX, currentY, robot.getAngle(), robot.getSize());
                     robot.setPosition(newPosition);
-                    drawRobot(newX, newY, robot,robot.getSize());
+                    drawAllObjects();
+                    //drawRobot(newX, newY, robot,robot.getSize());
                 }
             }
         }));
