@@ -44,9 +44,11 @@ public class RoomWindow extends Application {
     private int timeLeft = 60;
     Label dustLabel = new Label("Dust collected: ");
     Label TimerLabel = new Label("Time left: ");
+    Label endScreenLabel = new Label("YOU");
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
+    private Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
 
     Environment room;
     GraphicsContext gc;
@@ -237,7 +239,6 @@ public class RoomWindow extends Application {
     }
     private void startLogging() {
         int[] seconds = {0}; // Variable to track elapsed time
-        Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
         File logFile = new File("map_log.txt");
         if (logFile.exists()) {
             logFile.delete();
@@ -465,9 +466,6 @@ public class RoomWindow extends Application {
                 updateDustLabel();
                 room.removeCollectable(collectable);
                 collectableList.getItems().remove(collectable);
-                if (collected == collectedExists){
-
-                }
 
             }
         }
@@ -477,6 +475,14 @@ public class RoomWindow extends Application {
     }
     private void updateTimeLeft() {
         TimerLabel.setText("Time left: "+timeLeft);
+        if (timeLeft == 0){
+            endScreenLabel.setText("YOU LOST");
+            endScreen();
+        }
+        if (collectableList.getItems().isEmpty()){
+            endScreenLabel.setText("YOU WON");
+            endScreen();
+        }
     }
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
@@ -667,11 +673,11 @@ public class RoomWindow extends Application {
                 case PAGE_UP:
                     moveRobotForward(activeRobot);
                     break;
-                case G:
+                case D:
                     activeRobot.turn(activeRobot.getTurnAngle());
                     drawAllObjects();
                     break;
-                case F:
+                case A:
                     activeRobot.turn(-1 * activeRobot.getTurnAngle());
                     drawAllObjects();
                     break;
@@ -772,6 +778,28 @@ public class RoomWindow extends Application {
         timelineHolder[0].setCycleCount(Animation.INDEFINITE);
         robotTimelines.put(robot, timelineHolder[0]);
         timelineHolder[0].play();
+    }
+    private void endScreen() {
+        timeline[0].stop();
+        clearCanvas(gc);
+        Stage dialog = new Stage();
+        VBox dialogVbox = new VBox(10);
+        dialogVbox.setAlignment(Pos.CENTER);
+
+        Button btnMenu = new Button("Menu");
+
+
+        Button btnReplay = new Button("Show Replay");
+
+        dialogVbox.getChildren().addAll(
+                endScreenLabel,
+                btnMenu,
+                btnReplay
+        );
+
+        Scene dialogScene = new Scene(dialogVbox, 500, 500);
+        dialog.setScene(dialogScene);
+        dialog.show();
     }
     public static void main(String[] args) {
         launch(args);
