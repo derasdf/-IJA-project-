@@ -70,6 +70,7 @@ public class RoomWindow extends Application {
     Image basicRobotImage = new Image("/images/robot-vacuum-basic.png");
     Image selectedRobotImage = new Image("/images/robot-vacuum-color.png");
     Image robotImage;
+    boolean setBut = false;
     private char[][] map;
     public void setMap(char[][] map) {
         this.map = map;
@@ -103,6 +104,8 @@ public class RoomWindow extends Application {
         Button playButton = new Button("Play");
         playButton.setPrefSize(150, 50);
         playButton.setOnAction(e -> {
+            setBut = true;
+            drawAllObjects();
             action = true;
             updateDustLabel();
             updateTimeLeft();
@@ -202,15 +205,15 @@ public class RoomWindow extends Application {
         leftButtons.setAlignment(Pos.CENTER);
 
         // Buttons on the right
-        Button btnStartAut = new Button("Start automatic");
+        Button btnStartAut = new Button("Automatic");
         btnStartAut.setPrefSize(buttonWidth, 50);
         btnStartAut.setOnAction(e -> startAutomatic(gc));
 
-        Button btnKeyboardMovement = new Button("Keyboard Movement");
+        Button btnKeyboardMovement = new Button("Keyboard");
         btnKeyboardMovement.setPrefSize(buttonWidth, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
-        Button btnMouseMovement = new Button("Mouse Movement");
+        Button btnMouseMovement = new Button("Mouse");
         btnMouseMovement.setPrefSize(buttonWidth, 50);
         btnMouseMovement.setOnAction(e -> {
             if (selectedRobot != null) {
@@ -295,7 +298,9 @@ public class RoomWindow extends Application {
                         placeRobot(x,y,40,25,CELL_SIZE /map.length, 10);
                         break;
                     case 'C': // Add robot
-                        placeCollectable(x,y,CELL_SIZE /(map.length*4));
+
+                            placeCollectable(x, y, CELL_SIZE / (map.length * 4));
+
                         break;
                 }
             }
@@ -547,7 +552,9 @@ public class RoomWindow extends Application {
         {
             collectedExists++;
             collectableList.getItems().add(newCollectable);
-            drawCollectable(newCollectable.getPosition().getWidth() , newCollectable.getPosition().getHeight() , size, newCollectable);
+            if(setBut) {
+                drawCollectable(newCollectable.getPosition().getWidth(), newCollectable.getPosition().getHeight(), size, newCollectable);
+            }
         }
     }
     private void drawRotatedImage(GraphicsContext gc, Image image, double angle, double x, double y, int size) {
@@ -692,8 +699,10 @@ public class RoomWindow extends Application {
         for (Obstacle obstacle : room.myObstacleslist()) {
             drawObstacle(obstacle.getPosition().getWidth(), obstacle.getPosition().getHeight(), obstacle.getSize(), obstacle);
         }
-        for (Collectable collectable : room.myCollectableslist()) {
-            drawCollectable(collectable.getPosition().getWidth(), collectable.getPosition().getHeight(), collectable.getSize(), collectable);
+        if(setBut) {
+            for (Collectable collectable : room.myCollectableslist()) {
+                drawCollectable(collectable.getPosition().getWidth(), collectable.getPosition().getHeight(), collectable.getSize(), collectable);
+            }
         }
     }
     private void highlightObjectOnCanvas(Position pos, boolean isRobot) {
@@ -1002,6 +1011,7 @@ public class RoomWindow extends Application {
             }
             dialog.close();
             primaryStage.close();
+            setBut = false;
         });
 
         Button btnReplay = new Button("Show Replay");
