@@ -34,8 +34,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import javafx.scene.image.Image;
 import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
 public class RoomWindow extends Application {
     private Canvas canvas;
+    private Stage primaryStage;
     private int CELL_SIZE = 600;
     private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
@@ -50,7 +53,7 @@ public class RoomWindow extends Application {
     private ControlledRobot activeRobot = null;
     private Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
 
-    Environment room;
+    Environment room = Room.create(CELL_SIZE, CELL_SIZE);
     GraphicsContext gc;
     ListView<ControlledRobot> robotList;
     ListView<Obstacle> obstacleList;
@@ -69,6 +72,7 @@ public class RoomWindow extends Application {
         if (map == null) {
            return;
         }
+        this.primaryStage = primaryStage;
         canvas = new Canvas(600, 600);
         gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.LIGHTGRAY);
@@ -197,7 +201,6 @@ public class RoomWindow extends Application {
         primaryStage.show();
     }
     private void createRoomFromMap(char[][] map) {
-        room = Room.create(CELL_SIZE, CELL_SIZE);
         // Iterate over the map and add objects accordingly
         for (int row = 0; row < map.length; row++) {
             for (int col = 0; col < map[row].length; col++) {
@@ -280,6 +283,9 @@ public class RoomWindow extends Application {
         room.clearRobots();
         room.clearObstacles();
         room.clearCollectables();
+        robotList.getItems().clear();
+        obstacleList.getItems().clear();
+        collectableList.getItems().clear();
     }
 
     private void openRobotDialog() {
@@ -631,21 +637,20 @@ public class RoomWindow extends Application {
         if (selectedRobot != null) {
             room.removeRobot(selectedRobot);
             robotList.getItems().remove(selectedRobot);
-            robotList.getSelectionModel().clearSelection(); // Сброс выбора
+            robotList.getSelectionModel().clearSelection(); // Clear selection
             selectedRobot = null;
-            gc.setFill(Color.LIGHTGRAY);
-            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            drawAllObjects();
-        }
-        else if (selectedObstacle != null) {
+        } else if (selectedObstacle != null) {
             room.removeObstacle(selectedObstacle);
             obstacleList.getItems().remove(selectedObstacle);
-            obstacleList.getSelectionModel().clearSelection(); // Сброс выбора
+            obstacleList.getSelectionModel().clearSelection(); // Clear selection
             selectedObstacle = null;
-            gc.setFill(Color.LIGHTGRAY);
-            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            drawAllObjects();
+        } else if (selectedCollectable != null) {
+            room.removeCollectable(selectedCollectable);
+            collectableList.getItems().remove(selectedCollectable);
+            collectableList.getSelectionModel().clearSelection(); // Clear selection
+            selectedCollectable = null;
         }
+        drawAllObjects();
     }
     private void toggleKeyboardControl() {
         if (selectedRobot != null) {
@@ -669,9 +674,11 @@ public class RoomWindow extends Application {
             switch (event.getCode()) {
                 case W:
                     moveRobotForward(activeRobot);
+                    drawAllObjects();
                     break;
                 case PAGE_UP:
                     moveRobotForward(activeRobot);
+                    drawAllObjects();
                     break;
                 case D:
                     activeRobot.turn(activeRobot.getTurnAngle());
@@ -787,9 +794,23 @@ public class RoomWindow extends Application {
         dialogVbox.setAlignment(Pos.CENTER);
 
         Button btnMenu = new Button("Menu");
-
+        btnMenu.setOnAction(e -> {
+            Application app = new RoomCreationWindow();;
+            Stage newStage = new Stage();
+            try {
+                app.start(newStage);
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+            dialog.close();
+            primaryStage.close();
+        });
 
         Button btnReplay = new Button("Show Replay");
+        btnReplay.setOnAction(e -> {
+            dialog.close();
+            playReplay();
+        });
 
         dialogVbox.getChildren().addAll(
                 endScreenLabel,
@@ -800,6 +821,39 @@ public class RoomWindow extends Application {
         Scene dialogScene = new Scene(dialogVbox, 500, 500);
         dialog.setScene(dialogScene);
         dialog.show();
+    }
+    public void playReplay() {
+        try (BufferedReader reader = new BufferedReader(new FileReader("map_log.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\\s+");
+                if (parts.length >= 2) {
+                    int rows = Integer.parseInt(parts[0]);
+                    int cols = Integer.parseInt(parts[1]);
+                    char[][] map = new char[rows][cols];
+                    for (int i = 0; i < rows; i++) {
+                        if ((line = reader.readLine()) != null) {
+                            map[i] = line.toCharArray(); // Convert string to char array
+                        } else {
+                            // Handle incomplete map state
+                            break;
+                        }
+                    }
+                    // Create room from the map
+                    createRoomFromMap(map);
+                    primaryStage.show();
+                    drawAllObjects();
+                    Thread.sleep(1000);
+                    clearCanvas(gc);
+                } else {
+                    // Handle invalid line format
+                    System.err.println("Invalid line format: " + line);
+                }
+                //reader.readLine();
+            }
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
     }
     public static void main(String[] args) {
         launch(args);
