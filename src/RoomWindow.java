@@ -40,6 +40,8 @@ public class RoomWindow extends Application {
     private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
     private int collected = 0;
+    private int collectedExists = 0;
+    Label dustLabel = new Label("Dust collected: ");
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
@@ -155,17 +157,22 @@ public class RoomWindow extends Application {
         Button btnKeyboardMovement = new Button("Keyboard Movement");
         btnKeyboardMovement.setPrefSize(200, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
+
+        VBox vbox = new VBox(10);
+        updateDustLabel();
+        vbox.getChildren().add(0, dustLabel);
+
         HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
         VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
         VBox rightPanel2 = new VBox(10, new Label("Collectables"), collectableList);
 
-        VBox vbox = new VBox(10, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ,rightPanel2) );
-        vbox.setAlignment(Pos.CENTER);
+        VBox vbox2 = new VBox(10,vbox, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ,rightPanel2) );
+        vbox2.setAlignment(Pos.CENTER);
 
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(vbox, screenBounds.getWidth(), screenBounds.getHeight());
+        Scene scene = new Scene(vbox2, screenBounds.getWidth(), screenBounds.getHeight());
         scene.setOnMouseClicked(e -> {
             if (robotList.isFocused() || obstacleList.isFocused()) {
                 System.out.println("Mouse clicked");
@@ -371,6 +378,7 @@ public class RoomWindow extends Application {
         }
         else
         {
+            collectedExists++;
             collectableList.getItems().add(newCollectable);
             drawCollectable(newCollectable.getPosition().getWidth() , newCollectable.getPosition().getHeight() , size, newCollectable);
         }
@@ -444,14 +452,17 @@ public class RoomWindow extends Application {
         } else {
             robot.turn(robot.getTurnAngle());
         }
-        if (!room.collectableAt(oldPos, robot.getSize(), null)&& room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
+        if (room.collectableAt(oldPos, robot.getSize(), null) && room.containsPosition(oldPos, robot.getSize())) {
             collected++;
+            updateDustLabel();
             Collectable collectable = room.getCollectableAt(oldPos);
             room.removeCollectable(collectable);
             collectableList.getItems().remove(collectable);
         }
     }
-
+    private void updateDustLabel() {
+        dustLabel.setText("Dust collected: " + collected + "/" + collectedExists);
+    }
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(x-1, y-1 , size+2,  size+2);
@@ -475,8 +486,9 @@ public class RoomWindow extends Application {
         drawAllObjects();
         gc.setStroke(Color.YELLOW);
         gc.setLineWidth(2);
-        int size = selectedObstacle.getSize();
-        gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); // Выделение препятствия
+        int size = (CELL_SIZE /map.length);
+        if (!isRobot){
+        gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); }// Выделение препятствия
     }
 
     private void handleChange() {
