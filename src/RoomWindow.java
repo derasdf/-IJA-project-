@@ -8,14 +8,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
+import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import tool.common.Position;
 import room.ControlledRobot;
@@ -181,19 +179,19 @@ public class RoomWindow extends Application {
 
         // Buttons on the left
         Button btnCreateRobot = new Button("Create Robot");
-        btnCreateRobot.setPrefSize(200, 50);
+        btnCreateRobot.setPrefSize(220, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
 
         Button btnCreateObstacle = new Button("Create Obstacle");
-        btnCreateObstacle.setPrefSize(200, 50);
+        btnCreateObstacle.setPrefSize(220, 50);
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
 
         Button btnChange = new Button("Change");
-        btnChange.setPrefSize(200, 50);
+        btnChange.setPrefSize(220, 50);
         btnChange.setOnAction(e -> handleChange());
 
         Button btnDelete = new Button("Delete");
-        btnDelete.setPrefSize(200, 50);
+        btnDelete.setPrefSize(220, 50);
         btnDelete.setOnAction(e -> handleDelete());
 
         VBox leftButtons = new VBox(10, btnCreateRobot, btnCreateObstacle, btnChange, btnDelete);
@@ -201,15 +199,15 @@ public class RoomWindow extends Application {
 
         // Buttons on the right
         Button btnStartAut = new Button("Start automatic");
-        btnStartAut.setPrefSize(200, 50);
+        btnStartAut.setPrefSize(220, 50);
         btnStartAut.setOnAction(e -> startAutomatic(gc));
 
         Button btnKeyboardMovement = new Button("Keyboard Movement");
-        btnKeyboardMovement.setPrefSize(200, 50);
+        btnKeyboardMovement.setPrefSize(220, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
         Button btnMouseMovement = new Button("Mouse Movement");
-        btnMouseMovement.setPrefSize(200, 50);
+        btnMouseMovement.setPrefSize(220, 50);
         btnMouseMovement.setOnAction(e -> {
             if (selectedRobot != null) {
                 activeRobot = selectedRobot;
@@ -217,7 +215,7 @@ public class RoomWindow extends Application {
         });
 
         Button btnClear = new Button("Clear");
-        btnClear.setPrefSize(200, 50);
+        btnClear.setPrefSize(220, 50);
         btnClear.setOnAction(e -> clearCanvas(gc));
 
         VBox rightButtons = new VBox(10, btnStartAut, btnKeyboardMovement, btnMouseMovement, btnClear);
@@ -241,7 +239,7 @@ public class RoomWindow extends Application {
         layout.setAlignment(Pos.CENTER);
 
         BorderPane root = new BorderPane();
-        root.setTop(new VBox(homeButton, playButton));
+        root.setTop(new VBox(homeButton));
         root.setCenter(layout);
         BorderPane.setAlignment(homeButton, Pos.TOP_LEFT);
         BorderPane.setMargin(homeButton, new Insets(10));
@@ -362,55 +360,104 @@ public class RoomWindow extends Application {
 
     private void openRobotDialog() {
         Stage dialog = new Stage();
-        VBox dialogVbox = new VBox(10);
-        dialogVbox.setAlignment(Pos.CENTER);
+        dialog.initStyle(StageStyle.DECORATED);
+        dialog.setTitle(" "); // Оставляем заголовок пустым
 
-        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
-        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
+        // Создаем спиннеры для полей ввода
+        Spinner<Integer> spinnerX = new Spinner<>(0, 600, 0);
+        spinnerX.setEditable(true);
+        Spinner<Integer> spinnerY = new Spinner<>(0, 600, 0);
+        spinnerY.setEditable(true);
         Spinner<Integer> spinnerSpeed = new Spinner<>(20, 100, 50);
-        Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, 45);
-        Spinner<Integer> spinnerDetectionRange = new Spinner<>(1, 100, 10);  // Новый спиннер для дистанции обнаружения
+        spinnerSpeed.setEditable(true);
+        Spinner<Integer> spinnerTurnAngle = new Spinner<>(1, 359, 45);
+        spinnerTurnAngle.setEditable(true);
+        Spinner<Integer> spinnerDetectionRange = new Spinner<>(1, 100, 10);
+        spinnerDetectionRange.setEditable(true);
 
+        // Создаем строки с лейблами и спиннерами
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        Label xLabel = new Label("X Coordinate:");
+        xLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label yLabel = new Label("Y Coordinate:");
+        yLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label speedLabel = new Label("Speed:");
+        speedLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label angleLabel = new Label("Turn angle:");
+        angleLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label detectionRangeLabel = new Label("Detection Range:");
+        detectionRangeLabel.setStyle("-fx-text-fill: #d9b0ff;");
+
+        grid.addRow(0, xLabel, spinnerX);
+        grid.addRow(1, yLabel, spinnerY);
+        grid.addRow(2, speedLabel, spinnerSpeed);
+        grid.addRow(3, angleLabel, spinnerTurnAngle);
+        grid.addRow(4, detectionRangeLabel, spinnerDetectionRange);
+
+        // Создаем кнопку "Create"
         Button btnCreate = new Button("Create");
+        btnCreate.setStyle("-fx-background-color: #d9b0ff; -fx-text-fill: #643d88;");
         btnCreate.setOnAction(e -> {
             placeRobot(spinnerX.getValue(), spinnerY.getValue(), spinnerSpeed.getValue(), spinnerTurnAngle.getValue(), 30, spinnerDetectionRange.getValue());
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(
-                new Label("X Coordinate:"), spinnerX,
-                new Label("Y Coordinate:"), spinnerY,
-                new Label("Speed:"), spinnerSpeed,
-                new Label("Turn angle:"), spinnerTurnAngle,
-                new Label("Detection Range:"), spinnerDetectionRange,  // Добавляем на форму
-                btnCreate
-        );
+        // Центрируем кнопку
+        HBox createButtonContainer = new HBox(btnCreate);
+        createButtonContainer.setAlignment(Pos.CENTER);
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 300);
+        // Основной контейнер с заголовком, формой и кнопкой
+        VBox dialogVbox = new VBox(10, grid, createButtonContainer);
+        dialogVbox.setAlignment(Pos.CENTER);
+        dialogVbox.setPadding(new Insets(20));
+        dialogVbox.setStyle("-fx-background-color: #643d88; ");
+
+        Scene dialogScene = new Scene(dialogVbox, 400, 400);
         dialog.setScene(dialogScene);
         dialog.show();
     }
 
     private void openObstacleDialog() {
         Stage dialog = new Stage();
-        VBox dialogVbox = new VBox(10);
-        dialogVbox.setAlignment(Pos.CENTER);
 
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
+        spinnerX.setEditable(true);
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
-        Spinner<Integer> spinnerSize = new Spinner<>(1, 100, 10);
+        spinnerY.setEditable(true);
+        Spinner<Integer> spinnerSize = new Spinner<>(10, 100, 10);
+        spinnerSize.setEditable(true);
 
         Button btnCreate = new Button("Create");
+        btnCreate.setStyle("-fx-background-color: #d9b0ff; -fx-text-fill: #643d88;");
         btnCreate.setOnAction(e -> {
             placeObject(spinnerX.getValue(),spinnerY.getValue(),spinnerSize.getValue());
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(
-                new Label("X Coordinate:"), spinnerX,
-                new Label("Y Coordinate:"), spinnerY,
-                new Label("Size:"), spinnerSize,
-                btnCreate);
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        Label xLabel = new Label("X Coordinate:");
+        xLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label yLabel = new Label("Y Coordinate:");
+        yLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label sizeLabel = new Label("Size:");
+        sizeLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        grid.addRow(0, xLabel, spinnerX);
+        grid.addRow(1, yLabel, spinnerY);
+        grid.addRow(2, sizeLabel, spinnerSize);
+        HBox createButtonContainer = new HBox(btnCreate);
+        createButtonContainer.setAlignment(Pos.CENTER);
+
+        // Основной контейнер с заголовком, формой и кнопкой
+        VBox dialogVbox = new VBox(10, grid, createButtonContainer);
+        dialogVbox.setAlignment(Pos.CENTER);
+        dialogVbox.setPadding(new Insets(20));
+        dialogVbox.setStyle("-fx-background-color: #643d88; ");
 
         Scene dialogScene = new Scene(dialogVbox, 300, 250);
         dialog.setScene(dialogScene);
@@ -421,7 +468,7 @@ public class RoomWindow extends Application {
         ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle, detectionRange);
         if(robot == null)
         {
-            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "It is impossible to create a robot at this position", "Error", JOptionPane.ERROR_MESSAGE);
         }
         else
         {
@@ -437,7 +484,7 @@ public class RoomWindow extends Application {
         System.out.println("Obstacle created " + b + " " + c + " " + size);
         if(newObstacle == null)
         {
-            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "It is impossible to create an obstacle at this position", "Error", JOptionPane.ERROR_MESSAGE);
         }
         else
         {
@@ -623,17 +670,36 @@ public class RoomWindow extends Application {
 
     private void openRobotChangeDialog(ControlledRobot robot) {
         Stage dialog = new Stage();
-        VBox dialogVbox = new VBox(10);
-        dialogVbox.setAlignment(Pos.CENTER);
-
         // Создание спиннеров для установки различных параметров робота
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) robot.getPosition().getWidth());
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) robot.getPosition().getHeight());
         Spinner<Integer> spinnerSpeed = new Spinner<>(1, 100, robot.getSpeed());
         Spinner<Integer> spinnerOrientationAngle = new Spinner<>(0, 360, robot.getAngle());  // Угол ориентации робота
-        Spinner<Integer> spinnerTurnAngle = new Spinner<>(0, 360, robot.getTurnAngle());  // Угол поворота робота
+        Spinner<Integer> spinnerTurnAngle = new Spinner<>(1, 359, robot.getTurnAngle());  // Угол поворота робота
         Spinner<Integer> spinnerDetectionRange = new Spinner<>(1, 100, robot.getDetectionRange());
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        Label xLabel = new Label("X Coordinate:");
+        xLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label yLabel = new Label("Y Coordinate:");
+        yLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label speedLabel = new Label("Speed:");
+        speedLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label AAngleLabel = new Label("Angle:");
+        AAngleLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label angleLabel = new Label("Turn angle:");
+        angleLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label detectionRangeLabel = new Label("Detection Range:");
+        detectionRangeLabel.setStyle("-fx-text-fill: #d9b0ff;");
 
+        grid.addRow(0, xLabel, spinnerX);
+        grid.addRow(1, yLabel, spinnerY);
+        grid.addRow(2, speedLabel, spinnerSpeed);
+        grid.addRow(3, AAngleLabel, spinnerOrientationAngle);
+        grid.addRow(4, angleLabel, spinnerTurnAngle);
+        grid.addRow(5, detectionRangeLabel, spinnerDetectionRange);
         Button btnUpdate = new Button("Update");
         btnUpdate.setOnAction(e -> {
             Position newPos = new Position(spinnerX.getValue() - robot.getDetectionRange(), spinnerY.getValue()- robot.getDetectionRange());
@@ -654,22 +720,22 @@ public class RoomWindow extends Application {
                 robot.setDetectionRange(spinnerDetectionRange.getValue());
             }
             else {
-                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "You can't make a change with this data", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             drawAllObjects();
             dialog.close();
         });
+        HBox createButtonContainer = new HBox(btnUpdate);
+        createButtonContainer.setAlignment(Pos.CENTER);
 
-        dialogVbox.getChildren().addAll(
-                new Label("X Coordinate:"), spinnerX,
-                new Label("Y Coordinate:"), spinnerY,
-                new Label("Speed:"), spinnerSpeed,
-                new Label("Orientation Angle:"), spinnerOrientationAngle,
-                new Label("Turn Angle:"), spinnerTurnAngle,
-                new Label("Detection Range:"), spinnerDetectionRange,
-                btnUpdate
-        );
+        // Основной контейнер с заголовком, формой и кнопкой
+        VBox dialogVbox = new VBox(10, grid, createButtonContainer);
+        dialogVbox.setAlignment(Pos.CENTER);
+        dialogVbox.setPadding(new Insets(20));
+        dialogVbox.setStyle("-fx-background-color: #643d88; ");
+
+
 
         Scene dialogScene = new Scene(dialogVbox, 300, 350);
         dialog.setScene(dialogScene);
@@ -678,31 +744,51 @@ public class RoomWindow extends Application {
 
     private void openObstacleChangeDialog(Obstacle obstacle) {
         Stage dialog = new Stage();
-        VBox dialogVbox = new VBox(10);
-        dialogVbox.setAlignment(Pos.CENTER);
+
 
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) obstacle.getPosition().getWidth());
+        spinnerX.setEditable(true);
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) obstacle.getPosition().getHeight());
-        Spinner<Integer> spinnerSize = new Spinner<>(1, 100, obstacle.getSize());
+        spinnerY.setEditable(true);
+        Spinner<Integer> spinnerSize = new Spinner<>(10, 100, (int) obstacle.getSize());
+        spinnerSize.setEditable(true);
         Position pos = new Position(spinnerX.getValue(), spinnerY.getValue());
-        if (!room.containsPosition(pos, spinnerSize.getValue()) || room.obstacleAt(pos, spinnerSize.getValue(), null) || room.robotAt(pos, spinnerSize.getValue(), null)) {
-            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
         Button btnUpdate = new Button("Update");
+        btnUpdate.setStyle("-fx-background-color: #d9b0ff; -fx-text-fill: #643d88;");
         btnUpdate.setOnAction(e -> {
-            obstacle.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
-            obstacle.setSize(spinnerSize.getValue());
-            drawAllObjects();
+            if (!room.containsPosition(pos, spinnerSize.getValue()) || room.obstacleAt(pos, spinnerSize.getValue(), obstacle) || room.robotAt(pos, spinnerSize.getValue(), null)) {
+                JOptionPane.showMessageDialog(null, "You can't make a change with this data", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            else {
+                obstacle.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+                obstacle.setSize(spinnerSize.getValue());
+                drawAllObjects();
+            }
             dialog.close();
         });
 
-        dialogVbox.getChildren().addAll(
-                new Label("X Coordinate:"), spinnerX,
-                new Label("Y Coordinate:"), spinnerY,
-                new Label("Size:"), spinnerSize,
-                btnUpdate
-        );
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        Label xLabel = new Label("X Coordinate:");
+        xLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label yLabel = new Label("Y Coordinate:");
+        yLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        Label sizeLabel = new Label("Size:");
+        sizeLabel.setStyle("-fx-text-fill: #d9b0ff;");
+        grid.addRow(0, xLabel, spinnerX);
+        grid.addRow(1, yLabel, spinnerY);
+        grid.addRow(2, sizeLabel, spinnerSize);
+        HBox createButtonContainer = new HBox(btnUpdate);
+        createButtonContainer.setAlignment(Pos.CENTER);
+
+        // Основной контейнер с заголовком, формой и кнопкой
+        VBox dialogVbox = new VBox(10, grid, createButtonContainer);
+        dialogVbox.setAlignment(Pos.CENTER);
+        dialogVbox.setPadding(new Insets(20));
+        dialogVbox.setStyle("-fx-background-color: #643d88; ");
 
         Scene dialogScene = new Scene(dialogVbox, 300, 250);
         dialog.setScene(dialogScene);
