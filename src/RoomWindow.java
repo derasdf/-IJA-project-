@@ -387,7 +387,8 @@ public class RoomWindow extends Application {
                 btnCreate
         );
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 300);
+        Scene dialogScene = new Scene(dialogVbox, 400, 600);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -413,12 +414,13 @@ public class RoomWindow extends Application {
                 new Label("Size:"), spinnerSize,
                 btnCreate);
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 250);
+        Scene dialogScene = new Scene(dialogVbox, 400, 350);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
     private void placeRobot(double x, double y,int speed,int angle, int size, int detectionRange) {
-        Position pos = new Position(x - size/2 , y - size/2);
+        Position pos = new Position(x - (size >> 1) , y - (size >> 1));
         ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle, detectionRange);
         if(robot == null)
         {
@@ -432,9 +434,9 @@ public class RoomWindow extends Application {
         }
     }
     private void placeObject(double x, double y, int size) {
-        Obstacle newObstacle = Obstacle.create(room, new Position(x - size/2 , y - size/2), size);
-        double b = x- size/2;
-        double c = y- size/2;
+        Obstacle newObstacle = Obstacle.create(room, new Position(x - (size >> 1) , y - (size >> 1)), size);
+        double b = x- (size >> 1);
+        double c = y- (size >> 1);
         System.out.println("Obstacle created " + b + " " + c + " " + size);
         if(newObstacle == null)
         {
@@ -447,9 +449,9 @@ public class RoomWindow extends Application {
         }
     }
     private void placeCollectable(double x, double y, int size) {
-        Collectable newCollectable = Collectable.create(room, new Position(x - size/2 , y - size/2), size);
-        double b = x- size/2;
-        double c = y- size/2;
+        Collectable newCollectable = Collectable.create(room, new Position(x - (size >> 1) , y - (size >> 1)), size);
+        double b = x- (size >> 1);
+        double c = y- (size >> 1);
         if(newCollectable == null)
         {
             JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
@@ -464,9 +466,9 @@ public class RoomWindow extends Application {
     private void drawRotatedImage(GraphicsContext gc, Image image, double angle, double x, double y, int size) {
         clearRobotAt(gc, x, y, angle, size);
         gc.save(); // Сохраняем текущее состояние графического контекста
-        gc.translate(x + size / 2, y + size / 2); // Перемещаем контекст в центр изображения
+        gc.translate(x + (size >> 1), y + (size >> 1)); // Перемещаем контекст в центр изображения
         gc.rotate(angle); // Поворачиваем контекст
-        gc.translate(-size / 2, -size / 2); // Сдвигаем обратно на половину размера
+        gc.translate(-(size >> 1), -(size >> 1)); // Сдвигаем обратно на половину размера
         gc.drawImage(image, 0, 0, size, size); // Рисуем изображение
         gc.restore(); // Восстанавливаем графический контекст
     }
@@ -491,7 +493,7 @@ public class RoomWindow extends Application {
     }
     private void drawCollectable(double x, double y, int size, Collectable collectable) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.GREEN);
+        gc.setFill(Color.BLACK);
         gc.fillRect(x, y, size, size);
         if (collectable.equals(selectedCollectable)) {
             gc.setStroke(Color.YELLOW);
@@ -576,12 +578,12 @@ public class RoomWindow extends Application {
         gc.save();
 
         // Перемещаем контекст в центр изображения и поворачиваем
-        gc.translate(x + size / 2, y + size / 2);
+        gc.translate(x + (size >> 1), y + (size >> 1));
         gc.rotate(angle);
 
         // Очищаем область изображения
         gc.setFill(backgroundColor);
-        gc.fillRect(-size / 2 , -size / 2 , size + 4, size + 4);
+        gc.fillRect(-(size >> 1) , -(size >> 1) , size + 4, size + 4);
 
         // Восстанавливаем графический контекст
         gc.restore();
@@ -672,7 +674,8 @@ public class RoomWindow extends Application {
                 btnUpdate
         );
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 350);
+        Scene dialogScene = new Scene(dialogVbox, 400, 450);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -705,7 +708,8 @@ public class RoomWindow extends Application {
                 btnUpdate
         );
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 250);
+        Scene dialogScene = new Scene(dialogVbox, 400, 350);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -882,6 +886,7 @@ public class RoomWindow extends Application {
         );
 
         Scene dialogScene = new Scene(dialogVbox, 500, 500);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
