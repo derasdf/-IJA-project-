@@ -3,9 +3,9 @@ XXXXXXXXXX
 X........X
 X...X.R.XX
 X........X
-X......C.X
+X.C....C.X
 X........X
-X....R...X
+X....R.C.X
 X........X
 X........X
 XXXXXXXXXX

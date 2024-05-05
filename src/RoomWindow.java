@@ -41,7 +41,9 @@ public class RoomWindow extends Application {
     private int ROBOT_SIZE = 30;
     private int collected = 0;
     private int collectedExists = 0;
+    private int timeLeft = 60;
     Label dustLabel = new Label("Dust collected: ");
+    Label TimerLabel = new Label("Time left: ");
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
@@ -96,7 +98,6 @@ public class RoomWindow extends Application {
         robotList.setItems(FXCollections.observableArrayList(room.robots()));
         obstacleList.setItems(FXCollections.observableArrayList(room.myObstacleslist()));
         collectableList.setItems(FXCollections.observableArrayList(room.myCollectableslist()));
-
 
         robotList.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
@@ -160,8 +161,9 @@ public class RoomWindow extends Application {
 
         VBox vbox = new VBox(10);
         updateDustLabel();
+        updateTimeLeft();
         vbox.getChildren().add(0, dustLabel);
-
+        vbox.getChildren().add(1, TimerLabel);
         HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
@@ -217,7 +219,8 @@ public class RoomWindow extends Application {
         }
     }
     private void logMapStateToFile() {
-
+        timeLeft--;
+        updateTimeLeft();
         try (PrintWriter writer = new PrintWriter(new FileWriter("map_log.txt", true))) {
             writer.println( map.length + " " + map[0].length);
             for (int row = 0; row < map.length; row++) {
@@ -242,14 +245,9 @@ public class RoomWindow extends Application {
         // Create a Timeline to trigger logging every second
         timeline[0] = new Timeline(
                 new KeyFrame(Duration.seconds(1), e -> {
-                    // Log map state to file
                     updateMap();
                     logMapStateToFile();
-
-                    // Increment elapsed time
                     seconds[0]++;
-
-                    // Check if 60 seconds have elapsed, stop logging if yes
                     if (seconds[0] >= 60) {
                         timeline[0].stop();
                     }
@@ -452,16 +450,25 @@ public class RoomWindow extends Application {
         } else {
             robot.turn(robot.getTurnAngle());
         }
-        if (room.collectableAt(oldPos, robot.getSize(), null) && room.containsPosition(oldPos, robot.getSize())) {
-            collected++;
-            updateDustLabel();
-            Collectable collectable = room.getCollectableAt(oldPos);
-            room.removeCollectable(collectable);
-            collectableList.getItems().remove(collectable);
+        if (room.collectableAt(oldPos, robot.getSize(), null)) {
+            Collectable collectable = room.getCollectableAt(oldPos,robot.getSize());
+            if (collectable != null){
+                collected++;
+                updateDustLabel();
+                room.removeCollectable(collectable);
+                collectableList.getItems().remove(collectable);
+                if (collected == collectedExists){
+
+                }
+
+            }
         }
     }
     private void updateDustLabel() {
         dustLabel.setText("Dust collected: " + collected + "/" + collectedExists);
+    }
+    private void updateTimeLeft() {
+        TimerLabel.setText("Time left: "+timeLeft);
     }
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
@@ -656,6 +663,7 @@ public class RoomWindow extends Application {
     private void moveRobotForward(ControlledRobot robot) {
         double oldX = robot.getPosition().getWidth() ;
         double oldY = robot.getPosition().getHeight() ;
+        Position oldPos =  new Position(oldX , oldY);
         double angleInRadians = Math.toRadians(robot.angle());
         int speed = robot.getSpeed();
         double newX = (oldX + Math.cos(angleInRadians) * speed * 0.1);
@@ -667,7 +675,15 @@ public class RoomWindow extends Application {
             robot.setPosition(newPosition);
             drawRobot(newX, newY, robot,robot.getSize());
         }
-
+        if (room.collectableAt(oldPos, robot.getSize(), null)) {
+            Collectable collectable = room.getCollectableAt(oldPos, robot.getSize());
+            if (collectable != null) {
+                collected++;
+                updateDustLabel();
+                room.removeCollectable(collectable);
+                collectableList.getItems().remove(collectable);
+            }
+        }
     }
 
     //private void startContinuousMovement(ControlledRobot robot, double targetX, double targetY) {

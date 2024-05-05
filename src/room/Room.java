@@ -42,7 +42,7 @@ public class Room implements Environment {
         if (!containsPosition(pos, size)) {
             return false;
         }
-        if (obstacleAt(pos, size, null) || robotAt(pos, size, null)) {
+        if (obstacleAt(pos, size, null) || robotAt(pos, size, null)|| collectableAt(pos, size, null)) {
             return false;
         }
         myRobots.add((ControlledRobot)robot);
@@ -57,7 +57,7 @@ public class Room implements Environment {
         if (!containsPosition(obstacle.getPosition(), size)) {
             return false;
         }
-        if (obstacleAt(pos, size, null) || robotAt(pos, size, null)) {
+        if (obstacleAt(pos, size, null) || robotAt(pos, size, null)|| collectableAt(pos, size, null)) {
             return false;
         }
         myObstacles.add(obstacle);
@@ -72,11 +72,11 @@ public class Room implements Environment {
         if (!containsPosition(collectable.getPosition(), size)) {
             return false;
         }
-        if (collectableAt(pos, size, null) || robotAt(pos, size, null)) {
+        if (obstacleAt(pos, size, null) ||collectableAt(pos, size, null) || robotAt(pos, size, null)) {
             return false;
         }
         myCollectables.add(collectable);
-        System.out.println("Obstacles in func " + myCollectableslist().size() );
+        System.out.println("collectableS in func " + myCollectableslist().size() );
         return true;
     }
 
@@ -134,35 +134,28 @@ public class Room implements Environment {
 
     @Override
     public boolean collectableAt(Position p, int size, Collectable checkingCollectable) {
-        double width = p.getWidth();
-        double height = p.getHeight();
-
-        double newRight = width + size;
-        double newBottom = height + size;
-
         for (Collectable collectable : myCollectables) {
-            if (collectable != checkingCollectable) {  // Check if it's not the same collectable
+            if (collectable != checkingCollectable) {
                 Position pos = collectable.getPosition();
                 double colX = pos.getWidth();
                 double colY = pos.getHeight();
                 int colSize = collectable.getSize();
-                double colRight = colX + colSize;
-                double colBottom = colY + colSize;
 
-                if (((newRight > colX && newRight < colRight) || (width > colX && width < colRight) || (width < colX && newRight > colRight)) &&
-                        ((newBottom > colY && newBottom < colBottom) || (height > colY && height < colBottom) || (height < colY && newBottom > colBottom))) {
+                // Check if the position overlaps with the collectable's position
+                if (p.getWidth() < colX + colSize &&
+                        p.getWidth() + size > colX &&
+                        p.getHeight() < colY + colSize &&
+                        p.getHeight() + size > colY) {
                     return true;
                 }
             }
         }
-
         return false;
     }
-    public Collectable getCollectableAt(Position p) {
+
+    public Collectable getCollectableAt(Position p, int size) {
         for (Collectable collectable : myCollectables) {
-            Position pos = collectable.getPosition();
-            int size = collectable.getSize();
-            if (collectableAt(p, size, collectable)) {
+            if (!collectableAt(p, size, collectable)) {
                 return collectable;
             }
         }
