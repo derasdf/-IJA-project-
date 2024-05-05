@@ -33,6 +33,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javafx.scene.image.Image;
+import java.io.File;
 public class RoomWindow extends Application {
     private Canvas canvas;
     private int CELL_SIZE = 600;
@@ -209,8 +210,9 @@ public class RoomWindow extends Application {
         }
     }
     private void logMapStateToFile() {
+
         try (PrintWriter writer = new PrintWriter(new FileWriter("map_log.txt", true))) {
-            writer.println("Timestamp: " + System.currentTimeMillis());
+            writer.println( map.length + " " + map[0].length);
             for (int row = 0; row < map.length; row++) {
                 for (int col = 0; col < map[row].length; col++) {
                     writer.print(map[row][col]);
@@ -226,7 +228,10 @@ public class RoomWindow extends Application {
     private void startLogging() {
         int[] seconds = {0}; // Variable to track elapsed time
         Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
-
+        File logFile = new File("map_log.txt");
+        if (logFile.exists()) {
+            logFile.delete();
+        }
         // Create a Timeline to trigger logging every second
         timeline[0] = new Timeline(
                 new KeyFrame(Duration.seconds(1), e -> {
@@ -252,13 +257,13 @@ public class RoomWindow extends Application {
             for (int j = 0; j < map[i].length; j++) {
                 Position PosCheck = new Position( scale * i + scale / 2, scale * j + scale / 2);
                 if (room.obstacleAt(PosCheck, 1, null)) {
-                    map[j][i] = 'X'; // Update cell to 'X' with 50% probability
+                    map[j][i] = 'X';
                 } else if (room.robotAt(PosCheck, 1, null)) {
-                    map[j][i] = 'R'; // Update cell to empty space with 50% probability
+                    map[j][i] = 'R';
                 }else if (room.collectableAt(PosCheck, 1, null)) {
-                    map[j][i] = 'C'; // Update cell to empty space with 50% probability
+                    map[j][i] = 'C';
                 }else {
-                    map[j][i] = '.'; // Update cell to empty space with 50% probability
+                    map[j][i] = '.';
                 }
             }
         }
@@ -268,6 +273,7 @@ public class RoomWindow extends Application {
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room.clearRobots();
         room.clearObstacles();
+        room.clearCollectables();
     }
 
     private void openRobotDialog() {
