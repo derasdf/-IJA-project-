@@ -230,16 +230,19 @@ public class RoomWindow extends Application {
         topPanel.setAlignment(Pos.CENTER);
         topPanel.setSpacing(10);
         topPanel.setPadding(new Insets(10));
-
-        HBox mainPanel = new HBox(40,dustLabel,TimerLabel, leftPanel, canvas, rightPanel);
+        VBox topPanel2 = new VBox(20, playButton,dustLabel,TimerLabel);
+        topPanel2.setAlignment(Pos.CENTER);
+        topPanel2.setSpacing(10);
+        topPanel2.setPadding(new Insets(20));
+        HBox mainPanel = new HBox(40, leftPanel, canvas, rightPanel);
         mainPanel.setAlignment(Pos.CENTER);
         mainPanel.setPadding(new Insets(20));
 
-        VBox layout = new VBox(10, topPanel, playButton, mainPanel);
+        VBox layout = new VBox(10, topPanel,topPanel2, mainPanel);
         layout.setAlignment(Pos.CENTER);
 
         BorderPane root = new BorderPane();
-        root.setTop(new VBox(homeButton, playButton));
+        root.setTop(new VBox(homeButton, topPanel2));
         root.setCenter(layout);
         BorderPane.setAlignment(homeButton, Pos.TOP_LEFT);
         BorderPane.setMargin(homeButton, new Insets(10));
