@@ -10,13 +10,12 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
-import javafx.util.Callback;
+
 import tool.common.Position;
 import room.ControlledRobot;
 import room.Room;
@@ -41,9 +40,7 @@ import java.io.FileReader;
 public class RoomWindow extends Application {
     private Canvas canvas;
     private Stage primaryStage;
-    private int CELL_SIZE = 600;
-    private int OBSTACLE_SIZE = 10;
-    private int ROBOT_SIZE = 30;
+    private final int  CELL_SIZE = 600;
     private int collected = 0;
     private int collectedExists = 0;
     private int timeLeft = 60;
@@ -106,6 +103,7 @@ public class RoomWindow extends Application {
             updateDustLabel();
             updateTimeLeft();
             startLogging();
+            playButton.setVisible(false);
         });
 
         // Canvas setup
