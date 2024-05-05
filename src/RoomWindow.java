@@ -47,14 +47,14 @@ public class RoomWindow extends Application {
     private int collected = 0;
     private int collectedExists = 0;
     private int timeLeft = 60;
-    Label dustLabel = new Label("Dust collected: ");
-    Label TimerLabel = new Label("Time left: ");
+    Label dustLabel = new Label("");
+    Label TimerLabel = new Label("");
     Label endScreenLabel = new Label("YOU");
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
     private Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
-
+    private boolean action = false;
     Environment room = Room.create(CELL_SIZE, CELL_SIZE);
     GraphicsContext gc;
     ListView<ControlledRobot> robotList;
@@ -101,7 +101,12 @@ public class RoomWindow extends Application {
         // Play button
         Button playButton = new Button("Play");
         playButton.setPrefSize(150, 50);
-        playButton.setOnAction(e -> startAutomatic(gc));
+        playButton.setOnAction(e -> {
+            action = true;
+            updateDustLabel();
+            updateTimeLeft();
+            startLogging();
+        });
 
         // Canvas setup
         canvas = new Canvas(600, 600);
@@ -228,7 +233,7 @@ public class RoomWindow extends Application {
         topPanel.setSpacing(10);
         topPanel.setPadding(new Insets(10));
 
-        HBox mainPanel = new HBox(40, leftPanel, canvas, rightPanel);
+        HBox mainPanel = new HBox(40,dustLabel,TimerLabel, leftPanel, canvas, rightPanel);
         mainPanel.setAlignment(Pos.CENTER);
         mainPanel.setPadding(new Insets(20));
 
@@ -255,8 +260,7 @@ public class RoomWindow extends Application {
                 drawAllObjects();
             }
         });
-
-        startLogging();
+        //startLogging();
         scene.setOnKeyPressed(this::handleKeyPress);
         scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         primaryStage.setTitle("Room Grid Window");
@@ -281,14 +285,13 @@ public class RoomWindow extends Application {
                         placeRobot(x,y,40,25,CELL_SIZE /map.length, 10);
                         break;
                     case 'C': // Add robot
-                        placeCollectable(x,y,CELL_SIZE /map.length);
+                        placeCollectable(x,y,CELL_SIZE /(map.length*4));
                         break;
                 }
             }
         }
     }
     private void logMapStateToFile() {
-        timeLeft--;
         updateTimeLeft();
         try (PrintWriter writer = new PrintWriter(new FileWriter("map_log.txt", true))) {
             writer.println( map.length + " " + map[0].length);
@@ -305,24 +308,29 @@ public class RoomWindow extends Application {
         }
     }
     private void startLogging() {
-        int[] seconds = {0}; // Variable to track elapsed time
-        File logFile = new File("map_log.txt");
-        if (logFile.exists()) {
-            logFile.delete();
-        }
-        // Create a Timeline to trigger logging every second
-        timeline[0] = new Timeline(
-                new KeyFrame(Duration.seconds(1), e -> {
-                    updateMap();
-                    logMapStateToFile();
-                    seconds[0]++;
-                    if (seconds[0] >= 60) {
-                        timeline[0].stop();
-                    }
-                })
-        );
-        timeline[0].setCycleCount(Timeline.INDEFINITE);
-        timeline[0].play();
+        Thread loggingThread = new Thread(() -> {
+            int[] seconds = {0}; // Variable to track elapsed time
+            File logFile = new File("map_log.txt");
+            if (logFile.exists()) {
+                logFile.delete();
+            }
+            // Create a Timeline to trigger logging every second
+            timeline[0] = new Timeline(
+                    new KeyFrame(Duration.seconds(1), e -> {
+                        updateMap();
+                        timeLeft--;
+                        logMapStateToFile();
+                        seconds[0]++;
+                        if (seconds[0] >= 60) {
+                            timeline[0].stop();
+                        }
+                    })
+            );
+            timeline[0].setCycleCount(Timeline.INDEFINITE);
+            timeline[0].play();
+        });
+
+        loggingThread.start();
     }
     private void updateMap() {
         int scale = (CELL_SIZE /map.length);
@@ -342,8 +350,8 @@ public class RoomWindow extends Application {
         }
     }
     private void clearCanvas(GraphicsContext gc) {
-        gc.setFill(Color.LIGHTGRAY);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        //gc.setFill(Color.LIGHTGRAY);
+        //gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room.clearRobots();
         room.clearObstacles();
         room.clearCollectables();
@@ -541,10 +549,14 @@ public class RoomWindow extends Application {
         }
     }
     private void updateDustLabel() {
-        dustLabel.setText("Dust collected: " + collected + "/" + collectedExists);
+        if (action){
+            dustLabel.setText("Dust collected: " + collected + "/" + collectedExists);
+        }else dustLabel.setText("");
     }
     private void updateTimeLeft() {
-        TimerLabel.setText("Time left: "+timeLeft);
+        if (action) {
+            TimerLabel.setText("Time left: " + timeLeft);
+        }else TimerLabel.setText("");
         if (timeLeft == 0){
             endScreenLabel.setText("YOU LOST");
             endScreen();
@@ -852,7 +864,6 @@ public class RoomWindow extends Application {
     }
     private void endScreen() {
         timeline[0].stop();
-        clearCanvas(gc);
         Stage dialog = new Stage();
         VBox dialogVbox = new VBox(10);
         dialogVbox.setAlignment(Pos.CENTER);
@@ -871,10 +882,7 @@ public class RoomWindow extends Application {
         });
 
         Button btnReplay = new Button("Show Replay");
-        btnReplay.setOnAction(e -> {
-            dialog.close();
-            playReplay();
-        });
+        btnReplay.setOnAction(e -> playReplay());
 
         dialogVbox.getChildren().addAll(
                 endScreenLabel,
@@ -887,37 +895,40 @@ public class RoomWindow extends Application {
         dialog.show();
     }
     public void playReplay() {
-        try (BufferedReader reader = new BufferedReader(new FileReader("map_log.txt"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("\\s+");
-                if (parts.length >= 2) {
-                    int rows = Integer.parseInt(parts[0]);
-                    int cols = Integer.parseInt(parts[1]);
-                    char[][] map = new char[rows][cols];
-                    for (int i = 0; i < rows; i++) {
-                        if ((line = reader.readLine()) != null) {
-                            map[i] = line.toCharArray(); // Convert string to char array
-                        } else {
-                            // Handle incomplete map state
-                            break;
+        clearCanvas(gc);
+        Thread fileReaderThread = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new FileReader("map_log.txt"))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length >= 2) {
+                        int rows = Integer.parseInt(parts[0]);
+                        int cols = Integer.parseInt(parts[1]);
+                        char[][] map = new char[rows][cols];
+                        for (int i = 0; i < rows; i++) {
+                            if ((line = reader.readLine()) != null) {
+                                map[i] = line.toCharArray(); // Convert string to char array
+                            } else {
+                                // Handle incomplete map state
+                                break;
+                            }
                         }
+                        // Create room from the map
+                        createRoomFromMap(map);
+                        drawAllObjects();
+                        Thread.sleep(500);
+                        clearCanvas(gc);
+                    } else {
+                        // Handle invalid line format
+                        System.err.println("Invalid line format: " + line);
                     }
-                    // Create room from the map
-                    createRoomFromMap(map);
-                    primaryStage.show();
-                    drawAllObjects();
-                    Thread.sleep(1000);
-                    clearCanvas(gc);
-                } else {
-                    // Handle invalid line format
-                    System.err.println("Invalid line format: " + line);
                 }
-                //reader.readLine();
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        });
+
+        fileReaderThread.start();
     }
     public static void main(String[] args) {
         launch(args);
