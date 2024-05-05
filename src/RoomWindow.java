@@ -176,22 +176,22 @@ public class RoomWindow extends Application {
 
         // Creating room
         createRoomFromMap(map);
-
+        int buttonWidth = 250;
         // Buttons on the left
         Button btnCreateRobot = new Button("Create Robot");
-        btnCreateRobot.setPrefSize(200, 50);
+        btnCreateRobot.setPrefSize(buttonWidth, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
 
         Button btnCreateObstacle = new Button("Create Obstacle");
-        btnCreateObstacle.setPrefSize(200, 50);
+        btnCreateObstacle.setPrefSize(buttonWidth, 50);
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
 
         Button btnChange = new Button("Change");
-        btnChange.setPrefSize(200, 50);
+        btnChange.setPrefSize(buttonWidth, 50);
         btnChange.setOnAction(e -> handleChange());
 
         Button btnDelete = new Button("Delete");
-        btnDelete.setPrefSize(200, 50);
+        btnDelete.setPrefSize(buttonWidth, 50);
         btnDelete.setOnAction(e -> handleDelete());
 
         VBox leftButtons = new VBox(10, btnCreateRobot, btnCreateObstacle, btnChange, btnDelete);
@@ -199,15 +199,15 @@ public class RoomWindow extends Application {
 
         // Buttons on the right
         Button btnStartAut = new Button("Start automatic");
-        btnStartAut.setPrefSize(200, 50);
+        btnStartAut.setPrefSize(buttonWidth, 50);
         btnStartAut.setOnAction(e -> startAutomatic(gc));
 
         Button btnKeyboardMovement = new Button("Keyboard Movement");
-        btnKeyboardMovement.setPrefSize(200, 50);
+        btnKeyboardMovement.setPrefSize(buttonWidth, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
         Button btnMouseMovement = new Button("Mouse Movement");
-        btnMouseMovement.setPrefSize(200, 50);
+        btnMouseMovement.setPrefSize(buttonWidth, 50);
         btnMouseMovement.setOnAction(e -> {
             if (selectedRobot != null) {
                 activeRobot = selectedRobot;
@@ -215,7 +215,7 @@ public class RoomWindow extends Application {
         });
 
         Button btnClear = new Button("Clear");
-        btnClear.setPrefSize(200, 50);
+        btnClear.setPrefSize(buttonWidth, 50);
         btnClear.setOnAction(e -> clearCanvas(gc));
 
         VBox rightButtons = new VBox(10, btnStartAut, btnKeyboardMovement, btnMouseMovement, btnClear);
