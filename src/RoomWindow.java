@@ -514,11 +514,27 @@ public class RoomWindow extends Application {
 
         Button btnUpdate = new Button("Update");
         btnUpdate.setOnAction(e -> {
-            robot.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+            Position newPos = new Position(spinnerX.getValue() - robot.getDetectionRange(), spinnerY.getValue()- robot.getDetectionRange());
+            if(room.robotAt(newPos, robot.getSize() + 2*robot.getDetectionRange(), robot) || room.obstacleAt(newPos, robot.getSize()+ 2*robot.getDetectionRange(), null) || !room.containsPosition(newPos, robot.getSize()+ 2*robot.getDetectionRange()))
+            {
+                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            else
+            {
+                robot.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
+            }
             robot.setSpeed(spinnerSpeed.getValue());
             robot.setAngle(spinnerOrientationAngle.getValue());
             robot.setTurnAngle(spinnerTurnAngle.getValue());
-            robot.setDetectionRange(spinnerDetectionRange.getValue());
+            Position PosCheck = new Position(spinnerX.getValue() - spinnerDetectionRange.getValue(), spinnerY.getValue() - spinnerDetectionRange.getValue());
+            if (!room.obstacleAt(PosCheck, robot.getSize() + 2 * spinnerDetectionRange.getValue(), null) && !room.robotAt(PosCheck, robot.getSize() + 2 * spinnerDetectionRange.getValue(), robot) && room.containsPosition(PosCheck, robot.getSize() + 2 * spinnerDetectionRange.getValue() )){
+                robot.setDetectionRange(spinnerDetectionRange.getValue());
+            }
+            else {
+                JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             drawAllObjects();
             dialog.close();
         });
@@ -546,7 +562,11 @@ public class RoomWindow extends Application {
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) obstacle.getPosition().getWidth());
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) obstacle.getPosition().getHeight());
         Spinner<Integer> spinnerSize = new Spinner<>(1, 100, obstacle.getSize());
-
+        Position pos = new Position(spinnerX.getValue(), spinnerY.getValue());
+        if (!room.containsPosition(pos, spinnerSize.getValue()) || room.obstacleAt(pos, spinnerSize.getValue(), null) || room.robotAt(pos, spinnerSize.getValue(), null)) {
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         Button btnUpdate = new Button("Update");
         btnUpdate.setOnAction(e -> {
             obstacle.setPosition(new Position(spinnerX.getValue(), spinnerY.getValue()));
