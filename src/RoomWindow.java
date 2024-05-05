@@ -9,10 +9,14 @@ import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
+
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
 import tool.common.Position;
@@ -39,19 +43,17 @@ import java.io.FileReader;
 public class RoomWindow extends Application {
     private Canvas canvas;
     private Stage primaryStage;
-    private int CELL_SIZE = 600;
-    private int OBSTACLE_SIZE = 10;
-    private int ROBOT_SIZE = 30;
+    private final int  CELL_SIZE = 600;
     private int collected = 0;
     private int collectedExists = 0;
     private int timeLeft = 60;
     Label dustLabel = new Label("");
     Label TimerLabel = new Label("");
     Label endScreenLabel = new Label("YOU");
-    private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
+    private final Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
-    private Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
+    private final Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
     private boolean action = false;
     Environment room = Room.create(CELL_SIZE, CELL_SIZE);
     GraphicsContext gc;
@@ -104,6 +106,7 @@ public class RoomWindow extends Application {
             updateDustLabel();
             updateTimeLeft();
             startLogging();
+            playButton.setVisible(false);
         });
 
         // Canvas setup
@@ -888,16 +891,6 @@ public class RoomWindow extends Application {
             }
         }
     }
-
-    //private void startContinuousMovement(ControlledRobot robot, double targetX, double targetY) {
-     //   double angle = Math.toDegrees(Math.atan2(targetY - robot.getPosition().getHeight(), targetX - robot.getPosition().getWidth()));
-     //   robot.setAngle((int) angle);
-//
-     //   Timeline movementTimeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> moveTowards(robot, targetX, targetY)));
-     //   movementTimeline.setCycleCount(Timeline.INDEFINITE);
-     //   robotTimelines.put(robot, movementTimeline);
-      //  movementTimeline.play();
-    //}
 
     private void stopContinuousMovement(ControlledRobot robot) {
         Timeline timeline = robotTimelines.get(robot);
