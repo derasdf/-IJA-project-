@@ -179,21 +179,25 @@ public class RoomWindow extends Application {
 
         // Creating room
         createRoomFromMap(map);
-
+        int buttonWidth = 250;
         // Buttons on the left
         Button btnCreateRobot = new Button("Create Robot");
+        btnCreateRobot.setPrefSize(buttonWidth, 50);
         btnCreateRobot.setPrefSize(220, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
 
         Button btnCreateObstacle = new Button("Create Obstacle");
         btnCreateObstacle.setPrefSize(220, 50);
+        btnCreateObstacle.setPrefSize(buttonWidth, 50);
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
 
         Button btnChange = new Button("Change");
+        btnChange.setPrefSize(buttonWidth, 50);
         btnChange.setPrefSize(220, 50);
         btnChange.setOnAction(e -> handleChange());
 
         Button btnDelete = new Button("Delete");
+        btnDelete.setPrefSize(buttonWidth, 50);
         btnDelete.setPrefSize(220, 50);
         btnDelete.setOnAction(e -> handleDelete());
 
@@ -203,14 +207,17 @@ public class RoomWindow extends Application {
         // Buttons on the right
         Button btnStartAut = new Button("Start automatic");
         btnStartAut.setPrefSize(220, 50);
+        btnStartAut.setPrefSize(buttonWidth, 50);
         btnStartAut.setOnAction(e -> startAutomatic(gc));
 
         Button btnKeyboardMovement = new Button("Keyboard Movement");
+        btnKeyboardMovement.setPrefSize(buttonWidth, 50);
         btnKeyboardMovement.setPrefSize(220, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
         Button btnMouseMovement = new Button("Mouse Movement");
         btnMouseMovement.setPrefSize(220, 50);
+        btnMouseMovement.setPrefSize(buttonWidth, 50);
         btnMouseMovement.setOnAction(e -> {
             if (selectedRobot != null) {
                 activeRobot = selectedRobot;
@@ -219,6 +226,7 @@ public class RoomWindow extends Application {
 
         Button btnClear = new Button("Clear");
         btnClear.setPrefSize(220, 50);
+        btnClear.setPrefSize(buttonWidth, 50);
         btnClear.setOnAction(e -> clearCanvas(gc));
 
         VBox rightButtons = new VBox(10, btnStartAut, btnKeyboardMovement, btnMouseMovement, btnClear);
@@ -233,16 +241,20 @@ public class RoomWindow extends Application {
         topPanel.setAlignment(Pos.CENTER);
         topPanel.setSpacing(10);
         topPanel.setPadding(new Insets(10));
-
-        HBox mainPanel = new HBox(40,dustLabel,TimerLabel, leftPanel, canvas, rightPanel);
+        VBox topPanel2 = new VBox(20, playButton,dustLabel,TimerLabel);
+        topPanel2.setAlignment(Pos.CENTER);
+        topPanel2.setSpacing(10);
+        topPanel2.setPadding(new Insets(20));
+        HBox mainPanel = new HBox(40, leftPanel, canvas, rightPanel);
         mainPanel.setAlignment(Pos.CENTER);
         mainPanel.setPadding(new Insets(20));
 
-        VBox layout = new VBox(10, topPanel, playButton, mainPanel);
+        VBox layout = new VBox(10, topPanel,topPanel2, mainPanel);
         layout.setAlignment(Pos.CENTER);
 
         BorderPane root = new BorderPane();
         root.setTop(new VBox(homeButton));
+        root.setTop(new VBox(homeButton, topPanel2));
         root.setCenter(layout);
         BorderPane.setAlignment(homeButton, Pos.TOP_LEFT);
         BorderPane.setMargin(homeButton, new Insets(10));
@@ -419,6 +431,8 @@ public class RoomWindow extends Application {
         dialogVbox.setStyle("-fx-background-color: #643d88; ");
 
         Scene dialogScene = new Scene(dialogVbox, 400, 400);
+        Scene dialogScene = new Scene(dialogVbox, 400, 600);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -462,12 +476,13 @@ public class RoomWindow extends Application {
         dialogVbox.setPadding(new Insets(20));
         dialogVbox.setStyle("-fx-background-color: #643d88; ");
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 250);
+        Scene dialogScene = new Scene(dialogVbox, 400, 350);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
     private void placeRobot(double x, double y,int speed,int angle, int size, int detectionRange) {
-        Position pos = new Position(x - size/2 , y - size/2);
+        Position pos = new Position(x - (size >> 1) , y - (size >> 1));
         ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle, detectionRange);
         if(robot == null)
         {
@@ -481,9 +496,9 @@ public class RoomWindow extends Application {
         }
     }
     private void placeObject(double x, double y, int size) {
-        Obstacle newObstacle = Obstacle.create(room, new Position(x - size/2 , y - size/2), size);
-        double b = x- size/2;
-        double c = y- size/2;
+        Obstacle newObstacle = Obstacle.create(room, new Position(x - (size >> 1) , y - (size >> 1)), size);
+        double b = x- (size >> 1);
+        double c = y- (size >> 1);
         System.out.println("Obstacle created " + b + " " + c + " " + size);
         if(newObstacle == null)
         {
@@ -496,9 +511,9 @@ public class RoomWindow extends Application {
         }
     }
     private void placeCollectable(double x, double y, int size) {
-        Collectable newCollectable = Collectable.create(room, new Position(x - size/2 , y - size/2), size);
-        double b = x- size/2;
-        double c = y- size/2;
+        Collectable newCollectable = Collectable.create(room, new Position(x - (size >> 1) , y - (size >> 1)), size);
+        double b = x- (size >> 1);
+        double c = y- (size >> 1);
         if(newCollectable == null)
         {
             JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
@@ -513,9 +528,9 @@ public class RoomWindow extends Application {
     private void drawRotatedImage(GraphicsContext gc, Image image, double angle, double x, double y, int size) {
         clearRobotAt(gc, x, y, angle, size);
         gc.save(); // Сохраняем текущее состояние графического контекста
-        gc.translate(x + size / 2, y + size / 2); // Перемещаем контекст в центр изображения
+        gc.translate(x + (size >> 1), y + (size >> 1)); // Перемещаем контекст в центр изображения
         gc.rotate(angle); // Поворачиваем контекст
-        gc.translate(-size / 2, -size / 2); // Сдвигаем обратно на половину размера
+        gc.translate(-(size >> 1), -(size >> 1)); // Сдвигаем обратно на половину размера
         gc.drawImage(image, 0, 0, size, size); // Рисуем изображение
         gc.restore(); // Восстанавливаем графический контекст
     }
@@ -540,7 +555,7 @@ public class RoomWindow extends Application {
     }
     private void drawCollectable(double x, double y, int size, Collectable collectable) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.GREEN);
+        gc.setFill(Color.BLACK);
         gc.fillRect(x, y, size, size);
         if (collectable.equals(selectedCollectable)) {
             gc.setStroke(Color.YELLOW);
@@ -625,12 +640,12 @@ public class RoomWindow extends Application {
         gc.save();
 
         // Перемещаем контекст в центр изображения и поворачиваем
-        gc.translate(x + size / 2, y + size / 2);
+        gc.translate(x + (size >> 1), y + (size >> 1));
         gc.rotate(angle);
 
         // Очищаем область изображения
         gc.setFill(backgroundColor);
-        gc.fillRect(-size / 2 , -size / 2 , size + 4, size + 4);
+        gc.fillRect(-(size >> 1) , -(size >> 1) , size + 4, size + 4);
 
         // Восстанавливаем графический контекст
         gc.restore();
@@ -740,7 +755,8 @@ public class RoomWindow extends Application {
 
 
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 350);
+        Scene dialogScene = new Scene(dialogVbox, 400, 450);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -793,7 +809,8 @@ public class RoomWindow extends Application {
         dialogVbox.setPadding(new Insets(20));
         dialogVbox.setStyle("-fx-background-color: #643d88; ");
 
-        Scene dialogScene = new Scene(dialogVbox, 300, 250);
+        Scene dialogScene = new Scene(dialogVbox, 400, 350);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }
@@ -970,6 +987,7 @@ public class RoomWindow extends Application {
         );
 
         Scene dialogScene = new Scene(dialogVbox, 500, 500);
+        dialogScene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         dialog.setScene(dialogScene);
         dialog.show();
     }

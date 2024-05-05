@@ -10,11 +10,14 @@
 }
 .label {
     -fx-font-family: "Georgia", serif;
+    -fx-font-size: 16px; /* Increase font size */
+    -fx-font-weight: bold; /* Make text bold */
     -fx-text-fill: #381704;
-    -fx-font-size: 10px;
     -fx-letter-spacing: 0.1em;
     -fx-line-height: 200%;
     -fx-padding: 11px 0 0 0; /* только верхний отступ */
+    -fx-background-color: transparent; /* Remove background color */
+    -fx-padding: 10px; /* Set padding */
 }
 .title-label {
     -fx-font-family: "Georgia", serif;
