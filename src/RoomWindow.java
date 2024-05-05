@@ -1,20 +1,22 @@
 import javafx.animation.Animation;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
+import javafx.util.Callback;
 import tool.common.Position;
 import room.ControlledRobot;
 import room.Room;
@@ -61,8 +63,12 @@ public class RoomWindow extends Application {
     ControlledRobot selectedRobot;
     Obstacle selectedObstacle;
     Collectable selectedCollectable;
-
-
+    Image basicObstacleImage = new Image("/images/obstacle-empty.png");
+    Image selectedObstacleImage = new Image("/images/obstacle-color.png");
+    Image Obstacleimage;
+    Image basicRobotImage = new Image("/images/robot-vacuum-basic.png");
+    Image selectedRobotImage = new Image("/images/robot-vacuum-color.png");
+    Image robotImage;
     private char[][] map;
     public void setMap(char[][] map) {
         this.map = map;
@@ -70,9 +76,34 @@ public class RoomWindow extends Application {
     @Override
     public void start(Stage primaryStage) {
         if (map == null) {
-           return;
+            return;
         }
         this.primaryStage = primaryStage;
+
+        // Button to go back to SplashScreen
+        Image homeIconImage = new Image(getClass().getResourceAsStream("/images/home-icon.png"));
+        ImageView homeIconView = new ImageView(homeIconImage);
+        homeIconView.setFitWidth(30);
+        homeIconView.setFitHeight(30);
+        Button homeButton = new Button();
+        homeButton.setPrefSize(60, 60);
+        homeButton.setMinSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
+        homeButton.setMaxSize(Button.USE_PREF_SIZE, Button.USE_PREF_SIZE);
+        homeButton.setGraphic(homeIconView);
+        homeButton.setStyle("-fx-background-color: transparent;");
+        homeButton.setOnAction(e -> {
+            SplashScreen splashScreen = new SplashScreen();
+            Stage newStage = new Stage();
+            splashScreen.start(newStage);
+            primaryStage.close();
+        });
+
+        // Play button
+        Button playButton = new Button("Play");
+        playButton.setPrefSize(150, 50);
+        playButton.setOnAction(e -> startAutomatic(gc));
+
+        // Canvas setup
         canvas = new Canvas(600, 600);
         gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.LIGHTGRAY);
@@ -97,6 +128,8 @@ public class RoomWindow extends Application {
                 activeRobot = null;
             }
         });
+
+        // List views setup
         robotList = new ListView<>();
         obstacleList = new ListView<>();
         collectableList = new ListView<>();
@@ -137,8 +170,11 @@ public class RoomWindow extends Application {
                 highlightObjectOnCanvas(newVal.getPosition(), false);
             }
         });
+
+        // Creating room
         createRoomFromMap(map);
 
+        // Buttons on the left
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(200, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
@@ -147,43 +183,69 @@ public class RoomWindow extends Application {
         btnCreateObstacle.setPrefSize(200, 50);
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
 
-        Button btnClear = new Button("Clear");
-        btnClear.setPrefSize(200, 50);
-        btnClear.setOnAction(e -> clearCanvas(gc));
+        Button btnChange = new Button("Change");
+        btnChange.setPrefSize(200, 50);
+        btnChange.setOnAction(e -> handleChange());
 
+        Button btnDelete = new Button("Delete");
+        btnDelete.setPrefSize(200, 50);
+        btnDelete.setOnAction(e -> handleDelete());
+
+        VBox leftButtons = new VBox(10, btnCreateRobot, btnCreateObstacle, btnChange, btnDelete);
+        leftButtons.setAlignment(Pos.CENTER);
+
+        // Buttons on the right
         Button btnStartAut = new Button("Start automatic");
         btnStartAut.setPrefSize(200, 50);
         btnStartAut.setOnAction(e -> startAutomatic(gc));
 
-        Button btnChange = new Button("Change");
-        btnChange.setPrefSize(200, 50);
-        btnChange.setOnAction(e -> handleChange());
-        Button btnDelete = new Button("Delete");
-        btnDelete.setPrefSize(200, 50);
-        btnDelete.setOnAction(e -> handleDelete());
         Button btnKeyboardMovement = new Button("Keyboard Movement");
         btnKeyboardMovement.setPrefSize(200, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
-        VBox vbox = new VBox(10);
-        updateDustLabel();
-        updateTimeLeft();
-        vbox.getChildren().add(0, dustLabel);
-        vbox.getChildren().add(1, TimerLabel);
-        HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement);
-        hboxButtons.setAlignment(Pos.CENTER);
-        VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
-        VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
-        VBox rightPanel2 = new VBox(10, new Label("Collectables"), collectableList);
+        Button btnMouseMovement = new Button("Mouse Movement");
+        btnMouseMovement.setPrefSize(200, 50);
+        btnMouseMovement.setOnAction(e -> {
+            if (selectedRobot != null) {
+                activeRobot = selectedRobot;
+            }
+        });
 
-        VBox vbox2 = new VBox(10,vbox, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ,rightPanel2) );
-        vbox2.setAlignment(Pos.CENTER);
+        Button btnClear = new Button("Clear");
+        btnClear.setPrefSize(200, 50);
+        btnClear.setOnAction(e -> clearCanvas(gc));
+
+        VBox rightButtons = new VBox(10, btnStartAut, btnKeyboardMovement, btnMouseMovement, btnClear);
+        rightButtons.setAlignment(Pos.CENTER);
+
+        // Left and right panels
+        VBox leftPanel = new VBox(10, new Label("Robots"), robotList, leftButtons);
+        VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList, rightButtons);
+
+        // Layout setup
+        VBox topPanel = new VBox(10, homeButton);
+        topPanel.setAlignment(Pos.CENTER);
+        topPanel.setSpacing(10);
+        topPanel.setPadding(new Insets(10));
+
+        HBox mainPanel = new HBox(40, leftPanel, canvas, rightPanel);
+        mainPanel.setAlignment(Pos.CENTER);
+        mainPanel.setPadding(new Insets(20));
+
+        VBox layout = new VBox(10, topPanel, playButton, mainPanel);
+        layout.setAlignment(Pos.CENTER);
+
+        BorderPane root = new BorderPane();
+        root.setTop(new VBox(homeButton, playButton));
+        root.setCenter(layout);
+        BorderPane.setAlignment(homeButton, Pos.TOP_LEFT);
+        BorderPane.setMargin(homeButton, new Insets(10));
 
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(vbox2, screenBounds.getWidth(), screenBounds.getHeight());
+        Scene scene = new Scene(root, screenBounds.getWidth(), screenBounds.getHeight());
+
         scene.setOnMouseClicked(e -> {
             if (robotList.isFocused() || obstacleList.isFocused()) {
-                System.out.println("Mouse clicked");
                 robotList.getSelectionModel().clearSelection();
                 obstacleList.getSelectionModel().clearSelection();
                 collectableList.getSelectionModel().clearSelection();
@@ -193,8 +255,10 @@ public class RoomWindow extends Application {
                 drawAllObjects();
             }
         });
+
         startLogging();
         scene.setOnKeyPressed(this::handleKeyPress);
+        scene.getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
         primaryStage.setTitle("Room Grid Window");
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
@@ -399,22 +463,22 @@ public class RoomWindow extends Application {
     }
     private void drawRobot(double x, double y, ControlledRobot robot, int size) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        Image basicImage = new Image("/images/robot-vacuum-basic.png");
-        Image selectedImage = new Image("/images/robot-vacuum-color.png");
-        Image robotImage = robot.equals(selectedRobot) ? selectedImage : basicImage;
+        robotImage = robot.equals(selectedRobot) ? selectedRobotImage : basicRobotImage;
         drawRotatedImage(gc, robotImage, robot.angle(), x, y, size);
 
     }
 
     private void drawObstacle(double x, double y, int size, Obstacle obstacle) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.RED);
-        gc.fillRect(x, y, size, size);
-        if (obstacle.equals(selectedObstacle)) {
-            gc.setStroke(Color.YELLOW);
-            gc.setLineWidth(2);
-            gc.strokeRect(x, y, size, size);
-        }
+        //gc.setFill(Color.RED);
+        //gc.fillRect(x, y, size, size);
+        //if (obstacle.equals(selectedObstacle)) {
+        //    gc.setStroke(Color.YELLOW);
+        //    gc.setLineWidth(2);
+        //    gc.strokeRect(x, y, size, size);
+        //}
+        Obstacleimage = obstacle.equals(selectedObstacle) ? selectedObstacleImage : basicObstacleImage;
+        gc.drawImage(Obstacleimage, x, y, size, size);
     }
     private void drawCollectable(double x, double y, int size, Collectable collectable) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -530,11 +594,11 @@ public class RoomWindow extends Application {
     }
     private void highlightObjectOnCanvas(Position pos, boolean isRobot) {
         drawAllObjects();
-        gc.setStroke(Color.YELLOW);
-        gc.setLineWidth(2);
-        int size = (CELL_SIZE /map.length);
-        if (!isRobot){
-        gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); }// Выделение препятствия
+        //gc.setStroke(Color.YELLOW);
+        //gc.setLineWidth(2);
+        //int size = (CELL_SIZE /map.length);
+        //if (!isRobot){
+        //gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); }// Выделение препятствия
     }
 
     private void handleChange() {
