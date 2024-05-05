@@ -186,7 +186,7 @@ public class RoomWindow extends Application {
 
         // Creating room
         createRoomFromMap(map);
-        int buttonWidth = 220;
+        int buttonWidth = 250;
         // Buttons on the left
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(buttonWidth, 50);
