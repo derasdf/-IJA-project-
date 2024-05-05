@@ -33,12 +33,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javafx.scene.image.Image;
+import java.io.File;
 public class RoomWindow extends Application {
     private Canvas canvas;
     private int CELL_SIZE = 600;
     private int OBSTACLE_SIZE = 10;
     private int ROBOT_SIZE = 30;
     private int collected = 0;
+    private int collectedExists = 0;
+    Label dustLabel = new Label("Dust collected: ");
     private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
@@ -154,17 +157,22 @@ public class RoomWindow extends Application {
         Button btnKeyboardMovement = new Button("Keyboard Movement");
         btnKeyboardMovement.setPrefSize(200, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
+
+        VBox vbox = new VBox(10);
+        updateDustLabel();
+        vbox.getChildren().add(0, dustLabel);
+
         HBox hboxButtons = new HBox(10, btnCreateRobot, btnCreateObstacle, btnClear, btnStartAut, btnChange, btnDelete,btnKeyboardMovement);
         hboxButtons.setAlignment(Pos.CENTER);
         VBox leftPanel = new VBox(10, new Label("Robots"), robotList);
         VBox rightPanel = new VBox(10, new Label("Obstacles"), obstacleList);
         VBox rightPanel2 = new VBox(10, new Label("Collectables"), collectableList);
 
-        VBox vbox = new VBox(10, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ,rightPanel2) );
-        vbox.setAlignment(Pos.CENTER);
+        VBox vbox2 = new VBox(10,vbox, hboxButtons, new HBox(10,leftPanel,  canvas,  rightPanel ,rightPanel2) );
+        vbox2.setAlignment(Pos.CENTER);
 
         Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(vbox, screenBounds.getWidth(), screenBounds.getHeight());
+        Scene scene = new Scene(vbox2, screenBounds.getWidth(), screenBounds.getHeight());
         scene.setOnMouseClicked(e -> {
             if (robotList.isFocused() || obstacleList.isFocused()) {
                 System.out.println("Mouse clicked");
@@ -209,8 +217,9 @@ public class RoomWindow extends Application {
         }
     }
     private void logMapStateToFile() {
+
         try (PrintWriter writer = new PrintWriter(new FileWriter("map_log.txt", true))) {
-            writer.println("Timestamp: " + System.currentTimeMillis());
+            writer.println( map.length + " " + map[0].length);
             for (int row = 0; row < map.length; row++) {
                 for (int col = 0; col < map[row].length; col++) {
                     writer.print(map[row][col]);
@@ -226,7 +235,10 @@ public class RoomWindow extends Application {
     private void startLogging() {
         int[] seconds = {0}; // Variable to track elapsed time
         Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
-
+        File logFile = new File("map_log.txt");
+        if (logFile.exists()) {
+            logFile.delete();
+        }
         // Create a Timeline to trigger logging every second
         timeline[0] = new Timeline(
                 new KeyFrame(Duration.seconds(1), e -> {
@@ -252,13 +264,13 @@ public class RoomWindow extends Application {
             for (int j = 0; j < map[i].length; j++) {
                 Position PosCheck = new Position( scale * i + scale / 2, scale * j + scale / 2);
                 if (room.obstacleAt(PosCheck, 1, null)) {
-                    map[j][i] = 'X'; // Update cell to 'X' with 50% probability
+                    map[j][i] = 'X';
                 } else if (room.robotAt(PosCheck, 1, null)) {
-                    map[j][i] = 'R'; // Update cell to empty space with 50% probability
+                    map[j][i] = 'R';
                 }else if (room.collectableAt(PosCheck, 1, null)) {
-                    map[j][i] = 'C'; // Update cell to empty space with 50% probability
+                    map[j][i] = 'C';
                 }else {
-                    map[j][i] = '.'; // Update cell to empty space with 50% probability
+                    map[j][i] = '.';
                 }
             }
         }
@@ -268,6 +280,7 @@ public class RoomWindow extends Application {
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room.clearRobots();
         room.clearObstacles();
+        room.clearCollectables();
     }
 
     private void openRobotDialog() {
@@ -365,6 +378,7 @@ public class RoomWindow extends Application {
         }
         else
         {
+            collectedExists++;
             collectableList.getItems().add(newCollectable);
             drawCollectable(newCollectable.getPosition().getWidth() , newCollectable.getPosition().getHeight() , size, newCollectable);
         }
@@ -446,13 +460,20 @@ public class RoomWindow extends Application {
         } else {
             robot.turn(robot.getTurnAngle());
         }
-        if (!room.collectableAt(oldPos, robot.getSize(), null)&& room.containsPosition(PosCheck, robot.getSize() + 2 * robot.getDetectionRange() )) {
+        if (room.collectableAt(oldPos, robot.getSize(), null) && room.containsPosition(oldPos, robot.getSize())) {
             collected++;
+            updateDustLabel();
             Collectable collectable = room.getCollectableAt(oldPos);
             room.removeCollectable(collectable);
             collectableList.getItems().remove(collectable);
         }
     }
+    private void updateDustLabel() {
+        dustLabel.setText("Dust collected: " + collected + "/" + collectedExists);
+    }
+    private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
+        gc.setFill(Color.LIGHTGRAY);
+        gc.fillRect(x-1, y-1 , size+2,  size+2);
 
     private void clearRotatedImageAt(GraphicsContext gc, double x, double y, double angle, int size, Color backgroundColor) {
         // Сохраняем текущее состояние графического контекста
@@ -492,8 +513,9 @@ public class RoomWindow extends Application {
         drawAllObjects();
         gc.setStroke(Color.YELLOW);
         gc.setLineWidth(2);
-        int size = selectedObstacle.getSize();
-        gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); // Выделение препятствия
+        int size = (CELL_SIZE /map.length);
+        if (!isRobot){
+        gc.strokeRect(pos.getWidth(), pos.getHeight(), size, size); }// Выделение препятствия
     }
 
     private void handleChange() {
