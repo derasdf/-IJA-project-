@@ -1,3 +1,8 @@
+/*
+ * RoomWindow.java
+ * @author Aleksandrov Vladimir xaleks03
+ * @author Burylov Volodymyr xburyl00
+ */
 import javafx.animation.Animation;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -16,9 +21,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import common.Environment;
-
 import javafx.stage.StageStyle;
-import javafx.util.Callback;
 import tool.common.Position;
 import room.ControlledRobot;
 import room.Room;
@@ -716,8 +719,8 @@ public class RoomWindow extends Application {
     private void openRobotChangeDialog(ControlledRobot robot) {
         Stage dialog = new Stage();
         // Создание спиннеров для установки различных параметров робота
-        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) robot.getPosition().getWidth() + robot.getSize()/2);
-        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) robot.getPosition().getHeight() + robot.getSize()/2);
+        Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), (int) robot.getPosition().getWidth() + (robot.getSize() >> 1));
+        Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), (int) robot.getPosition().getHeight() + (robot.getSize() >> 1));
         Spinner<Integer> spinnerSpeed = new Spinner<>(1, 100, robot.getSpeed());
         Spinner<Integer> spinnerOrientationAngle = new Spinner<>(0, 360, robot.getAngle());  // Угол ориентации робота
         Spinner<Integer> spinnerTurnAngle = new Spinner<>(1, 359, robot.getTurnAngle());  // Угол поворота робота
@@ -747,7 +750,7 @@ public class RoomWindow extends Application {
         grid.addRow(5, detectionRangeLabel, spinnerDetectionRange);
         Button btnUpdate = new Button("Update");
         btnUpdate.setOnAction(e -> {
-            Position newPos = new Position(spinnerX.getValue() - robot.getSize()/2 - robot.getDetectionRange(), spinnerY.getValue() - robot.getSize()/2 - robot.getDetectionRange());
+            Position newPos = new Position(spinnerX.getValue() - (robot.getSize() >> 1) - robot.getDetectionRange(), spinnerY.getValue() - (robot.getSize() >> 1) - robot.getDetectionRange());
             if(room.robotAt(newPos, robot.getSize() + 2*robot.getDetectionRange(), robot) || room.obstacleAt(newPos, robot.getSize()+ 2*robot.getDetectionRange(), null) || !room.containsPosition(newPos, robot.getSize()+ 2*robot.getDetectionRange()))
             {
                 JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
@@ -755,7 +758,7 @@ public class RoomWindow extends Application {
             }
             else
             {
-                robot.setPosition(new Position(spinnerX.getValue()- robot.getSize()/2, spinnerY.getValue()- robot.getSize()/2));
+                robot.setPosition(new Position(spinnerX.getValue()- (robot.getSize() >> 1), spinnerY.getValue()- (robot.getSize() >> 1)));
             }
             robot.setSpeed(spinnerSpeed.getValue());
             robot.setAngle(spinnerOrientationAngle.getValue());
@@ -798,7 +801,7 @@ public class RoomWindow extends Application {
         spinnerY.setEditable(true);
         Spinner<Integer> spinnerSize = new Spinner<>(10, 100, (int) obstacle.getSize());
         spinnerSize.setEditable(true);
-        Position pos = new Position(spinnerX.getValue() - spinnerSize.getValue()/2, spinnerY.getValue()- spinnerSize.getValue()/2);
+        Position pos = new Position(spinnerX.getValue() - (spinnerSize.getValue()>> 1), spinnerY.getValue()- (spinnerSize.getValue()>> 1));
         Button btnUpdate = new Button("Update");
         btnUpdate.setStyle("-fx-background-color: #d9b0ff; -fx-text-fill: #643d88;");
         btnUpdate.setOnAction(e -> {
@@ -807,7 +810,7 @@ public class RoomWindow extends Application {
                 return;
             }
             else {
-                obstacle.setPosition(new Position(spinnerX.getValue() - spinnerSize.getValue()/2 , spinnerY.getValue()- spinnerSize.getValue()/2));
+                obstacle.setPosition(new Position(spinnerX.getValue() - (spinnerSize.getValue()>> 1) , spinnerY.getValue()- (spinnerSize.getValue()>> 1)));
                 obstacle.setSize(spinnerSize.getValue());
                 drawAllObjects();
             }

@@ -1,3 +1,8 @@
+/*
+ * RoomCreationWindow.java
+ * @author Aleksandrov Vladimir xaleks03
+ *
+ */
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;

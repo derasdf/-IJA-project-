@@ -1,6 +1,7 @@
 /*
  * Room.java
  * @author Aleksandrov Vladimir xaleks03
+ * @author Burylov Volodymyr xburyl00
  */
 package room;
 

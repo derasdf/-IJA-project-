@@ -1,3 +1,7 @@
+/*
+ * Collectable.java
+ * @author Aleksandrov Vladimir xaleks03
+ */
 package common;
 
 import tool.common.Position;
