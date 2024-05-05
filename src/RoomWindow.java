@@ -47,10 +47,10 @@ public class RoomWindow extends Application {
     Label dustLabel = new Label("");
     Label TimerLabel = new Label("");
     Label endScreenLabel = new Label("YOU");
-    private Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
+    private final Map<ControlledRobot, Timeline> robotTimelines = new HashMap<>();
     private boolean keyboardControlActive = false;
     private ControlledRobot activeRobot = null;
-    private Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
+    private final Timeline[] timeline = {null}; // Initialize timeline as an array to access it inside the lambda
     private boolean action = false;
     Environment room = Room.create(CELL_SIZE, CELL_SIZE);
     GraphicsContext gc;
@@ -800,16 +800,6 @@ public class RoomWindow extends Application {
             }
         }
     }
-
-    //private void startContinuousMovement(ControlledRobot robot, double targetX, double targetY) {
-     //   double angle = Math.toDegrees(Math.atan2(targetY - robot.getPosition().getHeight(), targetX - robot.getPosition().getWidth()));
-     //   robot.setAngle((int) angle);
-//
-     //   Timeline movementTimeline = new Timeline(new KeyFrame(Duration.seconds(0.1), e -> moveTowards(robot, targetX, targetY)));
-     //   movementTimeline.setCycleCount(Timeline.INDEFINITE);
-     //   robotTimelines.put(robot, movementTimeline);
-      //  movementTimeline.play();
-    //}
 
     private void stopContinuousMovement(ControlledRobot robot) {
         Timeline timeline = robotTimelines.get(robot);
