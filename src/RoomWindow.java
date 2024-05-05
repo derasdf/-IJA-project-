@@ -116,7 +116,7 @@ public class RoomWindow extends Application {
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         room = Room.create(600, 600);
-        /*canvas.setOnMousePressed(e -> {
+        canvas.setOnMousePressed(e -> {
             if (e.getButton() == MouseButton.PRIMARY && selectedRobot != null) {
                 activeRobot = selectedRobot;
                 moveTowards(activeRobot, e.getX(), e.getY());
@@ -134,7 +134,7 @@ public class RoomWindow extends Application {
                 stopContinuousMovement(activeRobot);
                 activeRobot = null;
             }
-        });*/
+        });
 
         // List views setup
         robotList = new ListView<>();
@@ -180,26 +180,22 @@ public class RoomWindow extends Application {
 
         // Creating room
         createRoomFromMap(map);
-        int buttonWidth = 250;
+        int buttonWidth = 220;
         // Buttons on the left
         Button btnCreateRobot = new Button("Create Robot");
         btnCreateRobot.setPrefSize(buttonWidth, 50);
-        btnCreateRobot.setPrefSize(220, 50);
         btnCreateRobot.setOnAction(e -> openRobotDialog());
 
         Button btnCreateObstacle = new Button("Create Obstacle");
-        btnCreateObstacle.setPrefSize(220, 50);
         btnCreateObstacle.setPrefSize(buttonWidth, 50);
         btnCreateObstacle.setOnAction(e -> openObstacleDialog());
 
         Button btnChange = new Button("Change");
         btnChange.setPrefSize(buttonWidth, 50);
-        btnChange.setPrefSize(220, 50);
         btnChange.setOnAction(e -> handleChange());
 
         Button btnDelete = new Button("Delete");
         btnDelete.setPrefSize(buttonWidth, 50);
-        btnDelete.setPrefSize(220, 50);
         btnDelete.setOnAction(e -> handleDelete());
 
         VBox leftButtons = new VBox(10, btnCreateRobot, btnCreateObstacle, btnChange, btnDelete);
@@ -207,17 +203,14 @@ public class RoomWindow extends Application {
 
         // Buttons on the right
         Button btnStartAut = new Button("Start automatic");
-        btnStartAut.setPrefSize(220, 50);
         btnStartAut.setPrefSize(buttonWidth, 50);
         btnStartAut.setOnAction(e -> startAutomatic(gc));
 
         Button btnKeyboardMovement = new Button("Keyboard Movement");
         btnKeyboardMovement.setPrefSize(buttonWidth, 50);
-        btnKeyboardMovement.setPrefSize(220, 50);
         btnKeyboardMovement.setOnAction(event -> toggleKeyboardControl());
 
         Button btnMouseMovement = new Button("Mouse Movement");
-        btnMouseMovement.setPrefSize(220, 50);
         btnMouseMovement.setPrefSize(buttonWidth, 50);
         btnMouseMovement.setOnAction(e -> {
             if (selectedRobot != null) {
@@ -258,7 +251,6 @@ public class RoomWindow extends Application {
         layout.setAlignment(Pos.CENTER);
 
         BorderPane root = new BorderPane();
-        root.setTop(new VBox(homeButton));
         root.setTop(new VBox(homeButton, topPanel2));
         root.setCenter(layout);
         BorderPane.setAlignment(homeButton, Pos.TOP_LEFT);
@@ -472,6 +464,7 @@ public class RoomWindow extends Application {
     private void openObstacleDialog() {
         Stage dialog = new Stage();
 
+
         Spinner<Integer> spinnerX = new Spinner<>(0, (int) canvas.getWidth(), 0);
         spinnerX.setEditable(true);
         Spinner<Integer> spinnerY = new Spinner<>(0, (int) canvas.getHeight(), 0);
@@ -518,7 +511,7 @@ public class RoomWindow extends Application {
         ControlledRobot robot = ControlledRobot.create(room, pos, size,speed, angle, detectionRange);
         if(robot == null)
         {
-            JOptionPane.showMessageDialog(null, "It is impossible to create a robot at this position", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
         }
         else
         {
@@ -534,7 +527,7 @@ public class RoomWindow extends Application {
         System.out.println("Obstacle created " + b + " " + c + " " + size);
         if(newObstacle == null)
         {
-            JOptionPane.showMessageDialog(null, "It is impossible to create an obstacle at this position", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "An object already exists at this location", "Error", JOptionPane.ERROR_MESSAGE);
         }
         else
         {
