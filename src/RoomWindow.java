@@ -473,8 +473,8 @@ public class RoomWindow extends Application {
     }
     private void clearRobotAt(GraphicsContext gc, double x, double y, int size) {
         gc.setFill(Color.LIGHTGRAY);
-        gc.fillRect(x-1, y-1 , size+2,  size+2);
-
+        gc.fillRect(x - 1, y - 1, size + 2, size + 2);
+    }
     private void clearRotatedImageAt(GraphicsContext gc, double x, double y, double angle, int size, Color backgroundColor) {
         // Сохраняем текущее состояние графического контекста
         gc.save();
